@@ -6,4 +6,6 @@ import com.emerchantpay.test.paymentsystembackend.model.SigninRequest;
 public interface IAuthenticationService {
 
   public JwtAuthenticationResponse signin(SigninRequest request);
+
+  public String encodePassword(String password);
 }

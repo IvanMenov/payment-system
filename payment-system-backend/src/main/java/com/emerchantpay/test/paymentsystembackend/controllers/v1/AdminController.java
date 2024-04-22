@@ -21,10 +21,20 @@ public class AdminController {
 
   @Autowired private IPaymentService paymentService;
 
-  @PutMapping("/{merchantId}/update/{status}")
+  @GetMapping("/merchants")
+  public ResponseEntity<?> getMerchants(Authentication authentication) {
+    if (!checkIsPrincipalAdmin(authentication)) {
+      return new ResponseEntity<>(
+          "Merchants not allowed to get other merchants details!", HttpStatus.FORBIDDEN);
+    }
+    List<Principal> list = principalService.findAllMerchants();
+    return ResponseEntity.ok(list);
+  }
+
+  @PutMapping("/merchant/{merchantId}/status/{status}")
   public ResponseEntity<?> getTransactionForMerchant(
       @PathVariable String merchantId, @PathVariable String status, Authentication authentication) {
-    if (checkIsPrincipalAdmin(authentication)) {
+    if (!checkIsPrincipalAdmin(authentication)) {
       return new ResponseEntity<String>(
           "Merchants not allowed to update status!", HttpStatus.FORBIDDEN);
     }
@@ -38,17 +48,13 @@ public class AdminController {
     try {
       newStatus = Enum.valueOf(Principal.Status.class, status.toUpperCase());
     } catch (Exception ex) {
-      return ResponseEntity.badRequest().body(ex.getMessage());
+      return ResponseEntity.badRequest().body(String.format("%s is not a valid status", status));
     }
     Optional<Principal> merchantOptional = principalService.findPrincipalById(merchId);
     if (!merchantOptional.isPresent()) {
       return ResponseEntity.notFound().build();
     }
     Principal merchant = merchantOptional.get();
-    if (merchant.getPrincipalType() == PrincipalType.MERCHANT) {
-      return new ResponseEntity<String>(
-          "Merchants not allowed to update status!", HttpStatus.FORBIDDEN);
-    }
     merchant.setStatus(newStatus);
     principalService.createOrUpdatePrincipal(merchant);
     return ResponseEntity.ok().body(String.format("Successfully updated merchant %s", merchantId));
@@ -56,7 +62,7 @@ public class AdminController {
 
   @GetMapping("/transactions/all")
   public ResponseEntity<?> getAllTransactionGroupByMerchant(Authentication authentication) {
-    if (checkIsPrincipalAdmin(authentication)) {
+    if (!checkIsPrincipalAdmin(authentication)) {
       return new ResponseEntity<String>(
           "Merchants not allowed to update status!", HttpStatus.FORBIDDEN);
     }
@@ -66,6 +72,6 @@ public class AdminController {
 
   private boolean checkIsPrincipalAdmin(Authentication authentication) {
     Principal principal = (Principal) authentication.getPrincipal();
-    return principal.getPrincipalType() != PrincipalType.MERCHANT;
+    return principal.getPrincipalType() == PrincipalType.ADMIN;
   }
 }

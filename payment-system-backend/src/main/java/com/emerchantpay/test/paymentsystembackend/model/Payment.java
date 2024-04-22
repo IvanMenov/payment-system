@@ -11,7 +11,7 @@ public class Payment {
   @Positive(message = "transaction amount must be greater than 0")
   private Double amount;
 
-  @Positive private Customer customer;
+  @NotNull private Customer customer;
 
   private TransactionType transactionType;
 

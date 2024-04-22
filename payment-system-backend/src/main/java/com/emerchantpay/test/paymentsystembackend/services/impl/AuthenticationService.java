@@ -7,15 +7,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class AuthenticationService implements IAuthenticationService {
 
   @Autowired private JwtService jwtService;
+
   @Autowired private AuthenticationManager authenticationManager;
 
-  @Autowired private PrincipalService service;
+  @Autowired private UserDetailsService service;
+
+  @Autowired private PasswordEncoder passwordEncoder;
 
   @Override
   public JwtAuthenticationResponse signin(SigninRequest request) {
@@ -27,5 +32,10 @@ public class AuthenticationService implements IAuthenticationService {
     }
     var jwt = jwtService.generateToken(principal);
     return JwtAuthenticationResponse.builder().token(jwt).build();
+  }
+
+  @Override
+  public String encodePassword(String password) {
+    return passwordEncoder.encode(password);
   }
 }

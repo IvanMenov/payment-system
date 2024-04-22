@@ -1,7 +1,7 @@
 package com.emerchantpay.test.paymentsystembackend.security;
 
-import com.emerchantpay.test.paymentsystembackend.services.impl.JwtService;
-import com.emerchantpay.test.paymentsystembackend.services.impl.PrincipalService;
+import com.emerchantpay.test.paymentsystembackend.services.IJwtService;
+import com.emerchantpay.test.paymentsystembackend.services.impl.PrincipalUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,9 +20,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Component
 public class AuthTokenFilter extends OncePerRequestFilter {
 
-  @Autowired private PrincipalService principalService;
+  @Autowired private PrincipalUserDetailsService principalService;
 
-  @Autowired private JwtService jwtService;
+  @Autowired private IJwtService jwtService;
 
   @Override
   protected void doFilterInternal(

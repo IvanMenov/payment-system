@@ -18,6 +18,10 @@ public class TransactionFactory {
             .merchant(merchant)
             .timestamp(System.currentTimeMillis());
     if (payment.getTransactionType() == TransactionType.REVERSAL) {
+      if (payment.getReferenceId() == null) {
+        throw new RuntimeException(
+            "Reversal transaction should have referenceId  pointing to authorization transaction!");
+      }
       createdTransaction =
           transactionBuilder
               .type(TransactionType.REVERSAL)
@@ -26,17 +30,23 @@ public class TransactionFactory {
               .build();
     } else if (payment.getTransactionType() == TransactionType.CHARGE) {
       if (authorizeTransaction != null) {
-        transactionBuilder
-            .amount(payment.getAmount())
-            .type(TransactionType.CHARGE)
-            .referenceTransactionUUID(authorizeTransaction.getUuid())
-            .build();
+        // there should already be an authorizationion transaction
+        createdTransaction =
+            transactionBuilder
+                .amount(payment.getAmount())
+                .type(TransactionType.CHARGE)
+                .referenceTransactionUUID(authorizeTransaction.getUuid())
+                .build();
       } else {
         // first create authorization transaction
         createdTransaction =
             transactionBuilder.amount(payment.getAmount()).type(TransactionType.AUTHORIZE).build();
       }
     } else if (payment.getTransactionType() == TransactionType.REFUND) {
+      if (payment.getReferenceId() == null) {
+        throw new RuntimeException(
+            "Refund transaction should have referenceId pointing to charge transaction!");
+      }
       createdTransaction =
           transactionBuilder
               .amount(payment.getAmount())

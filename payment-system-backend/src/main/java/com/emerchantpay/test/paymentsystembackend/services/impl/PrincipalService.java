@@ -3,8 +3,10 @@ package com.emerchantpay.test.paymentsystembackend.services.impl;
 import com.emerchantpay.test.paymentsystembackend.model.Principal;
 import com.emerchantpay.test.paymentsystembackend.model.PrincipalType;
 import com.emerchantpay.test.paymentsystembackend.repositories.PrincipalRepository;
+import com.emerchantpay.test.paymentsystembackend.services.IAuthenticationService;
 import com.emerchantpay.test.paymentsystembackend.services.IImportPrincipalService;
 import com.emerchantpay.test.paymentsystembackend.services.IPrincipalService;
+import com.google.common.util.concurrent.AtomicDouble;
 import com.opencsv.CSVParser;
 import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
@@ -14,21 +16,15 @@ import java.io.Reader;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
-public class PrincipalService
-    implements UserDetailsService, IPrincipalService, IImportPrincipalService {
+public class PrincipalService implements IPrincipalService, IImportPrincipalService {
 
-  private static final String ADMIN = "admin";
   @Autowired private PrincipalRepository principalRepository;
 
-  @Autowired private PasswordEncoder passwordEncoder;
+  @Autowired private IAuthenticationService authenticationService;
 
   @Override
   public void createOrUpdatePrincipal(Principal merchant) {
@@ -37,19 +33,19 @@ public class PrincipalService
 
   @Override
   public List<Principal> findAllAdmins() {
-    return principalRepository.findAllByPrincipalType(PrincipalType.ADMIN.getType());
+    return principalRepository.findAllByPrincipalType(PrincipalType.ADMIN.ordinal());
   }
 
   @Override
   public List<Principal> findAllMerchants() {
-    return principalRepository.findAllByPrincipalType(PrincipalType.MERCHANT.getType());
+    return principalRepository.findAllByPrincipalType(PrincipalType.MERCHANT.ordinal());
   }
 
   @Override
   public boolean isMerchantInactive(Principal merchant) {
     Optional<Principal> optionalPrincipal =
         principalRepository.findByIdAndPrincipalType(
-            merchant.getId(), PrincipalType.MERCHANT.getType());
+            merchant.getId(), PrincipalType.MERCHANT.ordinal());
     if (optionalPrincipal.isPresent()) {
       return optionalPrincipal
           .get()
@@ -71,15 +67,6 @@ public class PrincipalService
   }
 
   @Override
-  public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-    Optional<Principal> optionalPrincipal = principalRepository.findByEmail(email);
-    if (optionalPrincipal.isPresent()) {
-      return optionalPrincipal.get();
-    }
-    throw new UsernameNotFoundException(String.format("%s not found"));
-  }
-
-  @Override
   public void importPrincipalsFromCsv(MultipartFile file) {
     CSVParser parser = new CSVParserBuilder().withSeparator(',').withIgnoreQuotations(true).build();
 
@@ -95,7 +82,7 @@ public class PrincipalService
                   principal =
                       Principal.builder()
                           .email(array[3])
-                          .password(passwordEncoder.encode(array[4]))
+                          .password(authenticationService.encodePassword(array[4]))
                           .principalType(PrincipalType.ADMIN)
                           .status(Principal.Status.ACTIVE)
                           .build();
@@ -106,9 +93,10 @@ public class PrincipalService
                           .name(array[1])
                           .description(array[2])
                           .email(array[3])
-                          .password(passwordEncoder.encode(array[4]))
+                          .password(authenticationService.encodePassword(array[4]))
                           .principalType(PrincipalType.MERCHANT)
                           .status(Principal.Status.INACTIVE)
+                          .totalTransactionSum(new AtomicDouble(0))
                           .build();
                 }
                 if (principal != null) {

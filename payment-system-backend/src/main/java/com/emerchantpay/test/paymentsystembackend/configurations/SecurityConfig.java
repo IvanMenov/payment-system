@@ -1,8 +1,9 @@
-package com.emerchantpay.test.paymentsystembackend.security;
+package com.emerchantpay.test.paymentsystembackend.configurations;
 
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
-import com.emerchantpay.test.paymentsystembackend.services.impl.PrincipalService;
+import com.emerchantpay.test.paymentsystembackend.security.AuthTokenFilter;
+import com.emerchantpay.test.paymentsystembackend.services.impl.PrincipalUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,7 +24,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
   @Autowired AuthTokenFilter jwtAuthenticationFilter;
 
-  @Autowired PrincipalService principalService;
+  @Autowired PrincipalUserDetailsService principalUserDetailsService;
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -31,7 +32,7 @@ public class SecurityConfig {
         .authorizeHttpRequests(
             request ->
                 request
-                    .requestMatchers("/api/v1/auth/signin", "/api/v1/import/**")
+                    .requestMatchers("/api/v1/auth/**", "/api/v1/import/**")
                     .permitAll()
                     .anyRequest()
                     .authenticated())
@@ -49,7 +50,7 @@ public class SecurityConfig {
   @Bean
   public AuthenticationProvider authenticationProvider() {
     DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-    authProvider.setUserDetailsService(principalService);
+    authProvider.setUserDetailsService(principalUserDetailsService);
     authProvider.setPasswordEncoder(passwordEncoder());
     return authProvider;
   }

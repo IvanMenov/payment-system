@@ -1,5 +1,7 @@
 package com.emerchantpay.test.paymentsystembackend.model;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -10,6 +12,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "uuid")
 public class Transaction {
 
   @Id private String uuid;
@@ -25,7 +28,7 @@ public class Transaction {
   @Column(name = "reference_transaction_uuid")
   private String referenceTransactionUUID;
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "principal_id")
   private Principal merchant;
 

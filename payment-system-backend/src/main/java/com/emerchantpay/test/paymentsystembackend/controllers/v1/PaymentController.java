@@ -8,6 +8,7 @@ import com.emerchantpay.test.paymentsystembackend.model.Principal;
 import com.emerchantpay.test.paymentsystembackend.model.Transaction;
 import com.emerchantpay.test.paymentsystembackend.services.IPaymentService;
 import com.emerchantpay.test.paymentsystembackend.services.IPrincipalService;
+import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
@@ -26,7 +27,7 @@ public class PaymentController {
 
   @PostMapping("/init")
   public ResponseEntity<?> initializeTransaction(
-      @RequestBody Payment payment, Authentication authentication) {
+      @RequestBody @Valid Payment payment, Authentication authentication) {
     Principal merchant = (Principal) authentication.getPrincipal();
     if (principalService.isMerchantInactive(merchant)) {
       throw new MerchantNotActivatedException(merchant.getEmail());
@@ -40,7 +41,9 @@ public class PaymentController {
 
     Transaction transaction = paymentService.initializeTransaction(merchant, payment);
     paymentService.commenceTransactionValidations(merchant, payment, transaction);
-    return ResponseEntity.created(URI.create(String.format("/v1/payment/transactions/%s/monitor")))
+    return ResponseEntity.created(
+            URI.create(
+                String.format("api/v1/payment/transactions/%s/monitor", transaction.getUuid())))
         .build();
   }
 

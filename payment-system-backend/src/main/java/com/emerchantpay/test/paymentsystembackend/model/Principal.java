@@ -1,5 +1,8 @@
 package com.emerchantpay.test.paymentsystembackend.model;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.google.common.util.concurrent.AtomicDouble;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -17,6 +20,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "principal")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class Principal implements UserDetails {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,18 +33,17 @@ public class Principal implements UserDetails {
   @NotBlank
   private String email;
 
-  @NotBlank private String password;
+  @NotBlank @JsonIgnore private String password;
 
   private Status status;
 
   @Column(name = "total_transaction_sum")
   private AtomicDouble totalTransactionSum;
 
-  @OneToMany(fetch = FetchType.LAZY, mappedBy = "merchant", cascade = CascadeType.ALL)
-  private List<Transaction> transactionList;
+  @OneToMany(fetch = FetchType.EAGER, mappedBy = "merchant", cascade = CascadeType.ALL)
+  private List<Transaction> transactionList = new ArrayList<>();
 
   @Column(name = "principal_type")
-  @NotBlank
   private PrincipalType principalType;
 
   public void addTransaction(Transaction transaction) {
@@ -56,31 +59,37 @@ public class Principal implements UserDetails {
     }
   }
 
+  @JsonIgnore
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
     return new ArrayList<GrantedAuthority>();
   }
 
+  @JsonIgnore
   @Override
   public String getUsername() {
     return this.email;
   }
 
+  @JsonIgnore
   @Override
   public boolean isAccountNonExpired() {
     return true;
   }
 
+  @JsonIgnore
   @Override
   public boolean isAccountNonLocked() {
     return true;
   }
 
+  @JsonIgnore
   @Override
   public boolean isCredentialsNonExpired() {
     return true;
   }
 
+  @JsonIgnore
   @Override
   public boolean isEnabled() {
     return true;
