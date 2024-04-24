@@ -1,8 +1,8 @@
 package com.emerchantpay.test.paymentsystembackend.services;
 
-import org.springframework.web.multipart.MultipartFile;
+import java.io.InputStream;
 
 public interface IImportPrincipalService {
 
-  public void importPrincipalsFromCsv(MultipartFile file);
+  void importPrincipalsFromCsv(InputStream stream);
 }

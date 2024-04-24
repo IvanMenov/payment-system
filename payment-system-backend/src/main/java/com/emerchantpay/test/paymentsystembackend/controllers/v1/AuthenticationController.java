@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthenticationController {
   @Autowired private IAuthenticationService authenticationService;
 
-  @PostMapping("/signin")
+  @PostMapping(value = "/signin")
   public ResponseEntity<JwtAuthenticationResponse> signin(@RequestBody SigninRequest request) {
     return ResponseEntity.ok(authenticationService.signin(request));
   }

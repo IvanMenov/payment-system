@@ -13,6 +13,13 @@ import org.springframework.stereotype.Service;
 public class PrincipalUserDetailsService implements UserDetailsService {
   @Autowired private PrincipalRepository principalRepository;
 
+  /**
+   * @param email
+   *     <p>Loading the principal by username. Used in AuthTokenFilter to update the SecurityContext
+   *     with the principal.
+   * @return UserDetails
+   * @throws UsernameNotFoundException
+   */
   @Override
   public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
     Optional<Principal> optionalPrincipal = principalRepository.findByEmail(email);

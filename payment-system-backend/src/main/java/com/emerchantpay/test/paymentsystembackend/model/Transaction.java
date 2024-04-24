@@ -44,10 +44,14 @@ public class Transaction {
     REFUNDED("refunded"),
     ERROR("error");
 
-    private final String trStatus;
+    public final String trStatus;
 
-    private Status(String status) {
+    Status(String status) {
       this.trStatus = status;
+    }
+
+    public String getStatusType() {
+      return this.trStatus;
     }
   }
 }

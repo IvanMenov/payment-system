@@ -1,9 +1,9 @@
 package com.emerchantpay.test.paymentsystembackend.controllers.v1;
 
 import com.emerchantpay.test.paymentsystembackend.exceptions.MerchantNotActivatedException;
-import com.emerchantpay.test.paymentsystembackend.exceptions.PaymentTypeNotAllowedException;
+import com.emerchantpay.test.paymentsystembackend.exceptions.NoReferenceIdException;
 import com.emerchantpay.test.paymentsystembackend.exceptions.TranctionAlreadySubmittedException;
-import com.emerchantpay.test.paymentsystembackend.model.Payment;
+import com.emerchantpay.test.paymentsystembackend.model.PaymentDTO;
 import com.emerchantpay.test.paymentsystembackend.model.Principal;
 import com.emerchantpay.test.paymentsystembackend.model.Transaction;
 import com.emerchantpay.test.paymentsystembackend.services.IPaymentService;
@@ -13,6 +13,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -25,9 +26,11 @@ public class PaymentController {
 
   @Autowired private IPrincipalService principalService;
 
-  @PostMapping("/init")
+  @PostMapping(
+      value = "/init",
+      consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   public ResponseEntity<?> initializeTransaction(
-      @RequestBody @Valid Payment payment, Authentication authentication) {
+      @RequestBody @Valid PaymentDTO payment, Authentication authentication) {
     Principal merchant = (Principal) authentication.getPrincipal();
     if (principalService.isMerchantInactive(merchant)) {
       throw new MerchantNotActivatedException(merchant.getEmail());
@@ -35,12 +38,12 @@ public class PaymentController {
     if (paymentService.isTransactionAlreadySubmitted(payment)) {
       throw new TranctionAlreadySubmittedException(payment.getUuid());
     }
-    if (paymentService.isPaymentTypeAllowed(payment)) {
-      throw new PaymentTypeNotAllowedException(payment.getTransactionType().getType());
+    if (paymentService.hasNoReferenceId(payment)) {
+      throw new NoReferenceIdException(payment.getTransactionType().getType());
     }
 
     Transaction transaction = paymentService.initializeTransaction(merchant, payment);
-    paymentService.commenceTransactionValidations(merchant, payment, transaction);
+    paymentService.commenceTransactionProcess(merchant, payment, transaction);
     return ResponseEntity.created(
             URI.create(
                 String.format("api/v1/payment/transactions/%s/monitor", transaction.getUuid())))

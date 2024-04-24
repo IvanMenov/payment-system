@@ -2,8 +2,6 @@ package com.emerchantpay.test.paymentsystembackend.controllers.v1;
 
 import com.emerchantpay.test.paymentsystembackend.model.Principal;
 import com.emerchantpay.test.paymentsystembackend.model.PrincipalType;
-import com.emerchantpay.test.paymentsystembackend.model.Transaction;
-import com.emerchantpay.test.paymentsystembackend.services.IPaymentService;
 import com.emerchantpay.test.paymentsystembackend.services.IPrincipalService;
 import java.util.List;
 import java.util.Optional;
@@ -19,8 +17,6 @@ public class AdminController {
 
   @Autowired private IPrincipalService principalService;
 
-  @Autowired private IPaymentService paymentService;
-
   @GetMapping("/merchants")
   public ResponseEntity<?> getMerchants(Authentication authentication) {
     if (!checkIsPrincipalAdmin(authentication)) {
@@ -31,43 +27,46 @@ public class AdminController {
     return ResponseEntity.ok(list);
   }
 
+  @GetMapping("/merchants/{merchantId}")
+  public ResponseEntity<?> getMerchant(@PathVariable("merchantId") String merchantId) {
+    Optional<Principal> principal = principalService.findPrincipalById(Long.parseLong(merchantId));
+    if (principal.isPresent()) {
+      return ResponseEntity.ok(principal);
+    }
+    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+        .body(String.format("Merchant with id %s is not found!", merchantId));
+  }
+
+  @DeleteMapping("/{merchantId}")
+  public ResponseEntity<?> deleteMerchant(@PathVariable("merchantId") String merchantId) {
+    long merchId = Long.parseLong(merchantId);
+    if (principalService.findPrincipalById(merchId).isPresent()) {
+      principalService.deleteMerchantById(merchId);
+    } else {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND)
+          .body(String.format("Merchant with id %s is not found!", merchantId));
+    }
+    return ResponseEntity.ok(String.format("Delete merchant with id", merchId));
+  }
+
   @PutMapping("/merchant/{merchantId}/status/{status}")
   public ResponseEntity<?> getTransactionForMerchant(
       @PathVariable String merchantId, @PathVariable String status, Authentication authentication) {
     if (!checkIsPrincipalAdmin(authentication)) {
-      return new ResponseEntity<String>(
-          "Merchants not allowed to update status!", HttpStatus.FORBIDDEN);
+      return new ResponseEntity<>("Merchants not allowed to update status!", HttpStatus.FORBIDDEN);
     }
-    long merchId = 0;
-    try {
-      merchId = Long.parseLong(merchantId);
-    } catch (NumberFormatException ex) {
-      return ResponseEntity.badRequest().body(ex.getMessage());
-    }
-    Principal.Status newStatus = null;
-    try {
-      newStatus = Enum.valueOf(Principal.Status.class, status.toUpperCase());
-    } catch (Exception ex) {
-      return ResponseEntity.badRequest().body(String.format("%s is not a valid status", status));
-    }
-    Optional<Principal> merchantOptional = principalService.findPrincipalById(merchId);
-    if (!merchantOptional.isPresent()) {
-      return ResponseEntity.notFound().build();
+
+    Principal.Status newStatus = Enum.valueOf(Principal.Status.class, status.toUpperCase());
+    Optional<Principal> merchantOptional =
+        principalService.findPrincipalById(Long.parseLong(merchantId));
+    if (merchantOptional.isEmpty()) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND)
+          .body(String.format("Merchant with id %s is not found!", merchantId));
     }
     Principal merchant = merchantOptional.get();
     merchant.setStatus(newStatus);
     principalService.createOrUpdatePrincipal(merchant);
     return ResponseEntity.ok().body(String.format("Successfully updated merchant %s", merchantId));
-  }
-
-  @GetMapping("/transactions/all")
-  public ResponseEntity<?> getAllTransactionGroupByMerchant(Authentication authentication) {
-    if (!checkIsPrincipalAdmin(authentication)) {
-      return new ResponseEntity<String>(
-          "Merchants not allowed to update status!", HttpStatus.FORBIDDEN);
-    }
-    List<Transaction> transactions = paymentService.getAllTransactionsGroupByMerchant();
-    return ResponseEntity.ok(transactions);
   }
 
   private boolean checkIsPrincipalAdmin(Authentication authentication) {

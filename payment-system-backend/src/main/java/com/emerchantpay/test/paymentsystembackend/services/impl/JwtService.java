@@ -23,16 +23,31 @@ public class JwtService implements IJwtService {
   @Value("${app.jwt.expiration.min}")
   private int jwtExpiration;
 
+  /**
+   * @param token extracts username from the jwt token provided
+   * @return String
+   */
   @Override
   public String extractUserName(String token) {
     return extractClaim(token, Claims::getSubject);
   }
 
+  /**
+   * @param userDetails
+   *     <p>generates a new jwt token from the userDetails provided
+   * @return String
+   */
   @Override
   public String generateToken(UserDetails userDetails) {
     return generateToken(new HashMap<>(), userDetails);
   }
 
+  /**
+   * @param token
+   * @param userDetails
+   *     <p>check if jwt token is valid
+   * @return boolean
+   */
   @Override
   public boolean isTokenValid(String token, UserDetails userDetails) {
     final String userName = extractUserName(token);

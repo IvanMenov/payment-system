@@ -6,15 +6,13 @@ import java.util.Optional;
 
 public interface IPrincipalService {
 
+  void deleteMerchantById(long id);
+
   public boolean isMerchantInactive(Principal merchant);
 
   public void createOrUpdatePrincipal(Principal merchant);
 
-  public List<Principal> findAllAdmins();
-
   List<Principal> findAllMerchants();
 
   Optional<Principal> findPrincipalById(long id);
-
-  Optional<Principal> findPrincipalByEmail(String email);
 }

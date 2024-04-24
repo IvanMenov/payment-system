@@ -20,6 +20,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "principal")
+@NamedEntityGraph(
+    name = "Principal.transactionList",
+    attributeNodes = @NamedAttributeNode("transactionList"))
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class Principal implements UserDetails {
   @Id
@@ -40,8 +43,8 @@ public class Principal implements UserDetails {
   @Column(name = "total_transaction_sum")
   private AtomicDouble totalTransactionSum;
 
-  @OneToMany(fetch = FetchType.EAGER, mappedBy = "merchant", cascade = CascadeType.ALL)
-  private List<Transaction> transactionList = new ArrayList<>();
+  @OneToMany(fetch = FetchType.LAZY, mappedBy = "merchant", cascade = CascadeType.ALL)
+  private List<Transaction> transactionList;
 
   @Column(name = "principal_type")
   private PrincipalType principalType;

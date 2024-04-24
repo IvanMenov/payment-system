@@ -3,6 +3,7 @@ package com.emerchantpay.test.paymentsystembackend.controllers.v1;
 import com.emerchantpay.test.paymentsystembackend.services.IImportPrincipalService;
 import com.emerchantpay.test.paymentsystembackend.validation.CsvFile;
 import jakarta.validation.constraints.NotNull;
+import java.io.IOException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,13 +19,9 @@ public class ImportPrincipalController {
   @Autowired private IImportPrincipalService principalService;
 
   @PostMapping("/principals")
-  public ResponseEntity<?> importPrincipals(@RequestParam @NotNull @CsvFile MultipartFile file) {
-    try {
-      principalService.importPrincipalsFromCsv(file);
-    } catch (Exception ex) {
-      return ResponseEntity.badRequest()
-          .body(String.format("Problems importing principals from file.Cause:%s", ex.getMessage()));
-    }
+  public ResponseEntity<?> importPrincipals(@RequestParam @NotNull @CsvFile MultipartFile file)
+      throws IOException {
+    principalService.importPrincipalsFromCsv(file.getInputStream());
     return ResponseEntity.accepted().build();
   }
 }

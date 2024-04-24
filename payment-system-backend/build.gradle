@@ -38,21 +38,24 @@ dependencies {
     implementation 'com.opencsv:opencsv:5.9'
     implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'
     implementation 'com.google.guava:guava:33.1.0-jre'
-// https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-api
     implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
     implementation 'io.jsonwebtoken:jjwt-impl:0.12.5'
     implementation 'io.jsonwebtoken:jjwt-jackson:0.12.5'
 
-
-    compileOnly 'org.projectlombok:lombok:1.18.32'
-
-
+    implementation 'jakarta.xml.bind:jakarta.xml.bind-api:4.0.2'
     runtimeOnly 'org.postgresql:postgresql'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'org.testcontainers:junit-jupiter:1.19.7'
+    testImplementation 'org.testcontainers:postgresql:1.19.7'
 
 
+
+    compileOnly 'org.projectlombok:lombok:1.18.32'
     annotationProcessor 'org.projectlombok:lombok:1.18.32'
+
+    testCompileOnly 'org.projectlombok:lombok:1.18.32'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.32'
 }
 
 
