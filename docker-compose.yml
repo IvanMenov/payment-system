@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  payment-frontend:
+      build:
+        context: ./payment-system-frontend
+        dockerfile: Dockerfile
+      ports:
+        - "3000:3000"
+      depends_on:
+        - payment-backend
+  payment-backend:
+    image: 'payment-system:latest'
+    build:
+      context: ./payment-system-backend
+    container_name: payment
+    depends_on:
+      - db
+    environment:
+      - SPRING_DATASOURCE_DIALECT=org.hibernate.dialect.PostgreSQLDialect
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/payment_system
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=mysecretpassword
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - LOG_LEVEL=INFO
+
+    ports:
+      - "8080:8080"
+
+  db:
+    image: 'postgres:latest'
+    container_name: db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=mysecretpassword
+      - POSTGRES_DB=payment_system
+    ports:
+      - "5432:5432"
+      

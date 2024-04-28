@@ -1,18 +1,17 @@
 package com.emerchantpay.test.paymentsystembackend.services;
 
-import com.emerchantpay.test.paymentsystembackend.model.Principal;
 import java.util.List;
 import java.util.Optional;
 
-public interface IPrincipalService {
+public interface IPrincipalService<T> {
 
   void deleteMerchantById(long id);
 
-  public boolean isMerchantInactive(Principal merchant);
+  public boolean isMerchantInactive(T merchant);
 
-  public void createOrUpdatePrincipal(Principal merchant);
+  public T createOrUpdatePrincipal(T merchant);
 
-  List<Principal> findAllMerchants();
+  List<T> findAllMerchants();
 
-  Optional<Principal> findPrincipalById(long id);
+  Optional<T> findPrincipalById(long id);
 }

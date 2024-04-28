@@ -42,8 +42,6 @@ public class IntegrationTest {
           .withPassword("mysecretpassword")
           .withUsername("postgres");
 
-  // .withInitScript(("init.sql"));
-
   public static class Initializer
       implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 

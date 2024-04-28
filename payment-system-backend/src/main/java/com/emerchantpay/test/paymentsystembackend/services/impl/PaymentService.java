@@ -75,45 +75,36 @@ public class PaymentService implements IPaymentService {
 
   /**
    * @param merchant
-   * @param payment
-   *     <p>Asynchronously start the validation process.
-   *     If the initialTransaction for REVERSAL check:
-   *         1. finds a transaction provided in the referenceId by the payment
-   *         2. If check 1 succeeds than checks if the transaction found is of TransactionType.AUTHORIZE
-   *         3. if check 2 succeeds check if the transaction found has status Transaction.Status.APPROVED
-   *         4. if check 3 succeeds than checks if time window between the
-   *            authorization transaction creation and now is less than specific WAIT_TIME (defaults to 40
-   *            sec, but can be configured through app.wait.time.seconds in application.properties)
-   *            If all checks pass, set status of authorization transaction to REVERSED, change status of reversal transaction to approved,
-   *            and if there is a charge transaction that is still not finished, set it to status ERROR.
-   *            If any of the above checks fail this would set initialTransaction status to ERROR.
-   *
-   *
-   *     If the initialTransaction for REFUND check:
-   *        1. finds a transaction provided in the referenceId by the payment
-   *        2. if check 1 succeeds check the found transaction amount is greater than or equal to payment amoount
-   *        3. if check 2 succeeds than checks if the transaction found is of TransactionType.CHARGE
-   *        4. if check 3 succeeds check if the transaction found has status Transaction.Status.APPROVED
-   *
-   *        If the above checks would succeed, then update the merchant amount by subtracting the charge transaction amount from the current merchant's
-   *        total transaction, set refund transaction to approved and set charge transaction to refunded
-   *
-   *        If any of the above checks fail this would set initialTransaction status to ERROR
-   *
-   *
-   *      If the initialTransaction for CHARGE check:
-   *      
-   *        1. Authorize the initialTransaction and set it to by checking that payment amount < customer's amount.
-   *        2. If check 1 succeeds create charge transaction and set it to refer to the initialTransaction
-   *            Then checks if timewindow between the authorization transaction creation
-   *            and now is less than specific WAIT_TIME (defaults to 40 sec, but can be configured through
-   *            app.wait.time.seconds in application.properties). If it is true, call TimeUnit.MILLISECONDS.sleep for the remaining time.
-   *            Then check if in the meantime there was a reversal transaction which would change the status
-   *            of initialTransaction transaction from Approved to Reversed
-   *        3. if check 2 succeeds then add the change status of chargeTransaction to Transaction.Status.APPROVED
-   *            and update merchant total transaction sum
-   *
-   *        If any of the above checks fail this would set initialTransaction status to ERROR
+   * @param payment Asynchronously start the validation process. If the initialTransaction for
+   *     REVERSAL check: 1. Finds a transaction provided in the referenceId by the payment 2. If
+   *     check 1 succeeds than checks if the transaction found is of TransactionType.AUTHORIZE 3. if
+   *     check 2 succeeds check if the transaction found has status Transaction.Status.APPROVED 4.
+   *     if check 3 succeeds than checks if time window between the authorization transaction
+   *     creation and now is less than specific WAIT_TIME (defaults to 40 sec, but can be configured
+   *     through app.wait.time.seconds in application-dev.properties) If all checks pass, set status
+   *     of authorization transaction to REVERSED, change status of reversal transaction to
+   *     approved, and if there is a charge transaction that is still not finished, set it to status
+   *     ERROR. If any of the above checks fail this would set initialTransaction status to ERROR.
+   *     <p>If the initialTransaction for REFUND check: 1. finds a transaction provided in the
+   *     referenceId by the payment 2. if check 1 succeeds check the found transaction amount is
+   *     greater than or equal to payment amoount 3. if check 2 succeeds than checks if the
+   *     transaction found is of TransactionType.CHARGE 4. if check 3 succeeds check if the
+   *     transaction found has status Transaction.Status.APPROVED
+   *     <p>If the above checks would succeed, then update the merchant amount by subtracting the
+   *     charge transaction amount from the current merchant's total transaction, set refund
+   *     transaction to approved and set charge transaction to refunded If any of the above checks
+   *     fail this would set initialTransaction status to ERROR
+   *     <p>If the initialTransaction for CHARGE check:
+   *     <p>1.Authorize the initialTransaction and set it to by checking that payment amount <
+   *     customer's amount. 2.If check 1 succeeds create charge transaction and set it to refer to
+   *     the initialTransaction Then checks if timewindow between the authorization transaction
+   *     creation and now is less than specific WAIT_TIME (defaults to 40 sec, but can be configured
+   *     through app.wait.time.seconds in application-dev.properties). If it is true, call
+   *     TimeUnit.MILLISECONDS.sleep for the remaining time. Then check if in the meantime there was
+   *     a reversal transaction which would change the status of initialTransaction transaction from
+   *     Approved to Reversed 3.if check 2 succeeds then add the change status of chargeTransaction
+   *     to Transaction.Status.APPROVED and update merchant total transaction sum
+   *     <p>If any of the above checks fail this would set initialTransaction status to ERROR
    * @param initialTransaction
    */
   @Override
@@ -246,31 +237,28 @@ public class PaymentService implements IPaymentService {
     return System.currentTimeMillis() - chargeTransaction.getTimestamp();
   }
 
-    /**
-     * @param merchant
-     * get all transactions for a given merchant
-     * @return
-     */
+  /**
+   * @param merchant get all transactions for a given merchant
+   * @return
+   */
   @Override
   public List<Transaction> getTransactionsForMerchant(Principal merchant) {
     return transactionRepository.findAllByMerchantId(merchant.getId());
   }
 
-    /**
-     * @param uuid
-     * get information for a specific transaction
-     * @return
-     */
+  /**
+   * @param uuid get information for a specific transaction
+   * @return
+   */
   @Override
   public Optional<Transaction> getTransactionInformation(String uuid) {
     return transactionRepository.findById(uuid);
   }
 
-    /**
-     * @param payment
-     * if payment is of type REFUND or REVERSAL, they should provide as a referenceId
-     * @return
-     */
+  /**
+   * @param payment if payment is of type REFUND or REVERSAL, they should provide as a referenceId
+   * @return
+   */
   @Override
   public boolean hasNoReferenceId(PaymentDTO payment) {
     if (payment.getTransactionType() == TransactionType.REFUND

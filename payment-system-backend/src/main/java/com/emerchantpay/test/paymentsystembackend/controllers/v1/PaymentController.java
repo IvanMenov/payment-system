@@ -8,7 +8,7 @@ import com.emerchantpay.test.paymentsystembackend.model.Principal;
 import com.emerchantpay.test.paymentsystembackend.model.Transaction;
 import com.emerchantpay.test.paymentsystembackend.services.IPaymentService;
 import com.emerchantpay.test.paymentsystembackend.services.IPrincipalService;
-import jakarta.validation.Valid;
+import com.emerchantpay.test.paymentsystembackend.validation.Payment;
 import java.net.URI;
 import java.util.List;
 import java.util.Optional;
@@ -30,7 +30,7 @@ public class PaymentController {
       value = "/init",
       consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   public ResponseEntity<?> initializeTransaction(
-      @RequestBody @Valid PaymentDTO payment, Authentication authentication) {
+      @RequestBody @Payment PaymentDTO payment, Authentication authentication) {
     Principal merchant = (Principal) authentication.getPrincipal();
     if (principalService.isMerchantInactive(merchant)) {
       throw new MerchantNotActivatedException(merchant.getEmail());

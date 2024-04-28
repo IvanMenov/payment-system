@@ -2,13 +2,11 @@ package com.emerchantpay.test.paymentsystembackend.model;
 
 import jakarta.validation.constraints.*;
 import jakarta.xml.bind.annotation.XmlRootElement;
-import org.hibernate.validator.constraints.UUID;
 
 @XmlRootElement(name = "payment")
 public class PaymentDTO {
-  @UUID private String uuid;
+  private String uuid;
 
-  @Positive(message = "transaction amount must be greater than 0")
   private Double amount;
 
   private CustomerDTO customer;

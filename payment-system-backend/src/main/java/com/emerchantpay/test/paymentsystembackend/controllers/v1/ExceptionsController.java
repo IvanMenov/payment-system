@@ -8,6 +8,7 @@ import io.jsonwebtoken.ExpiredJwtException;
 import java.io.IOException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 public class ExceptionsController {
 
   @ExceptionHandler(value = ExpiredJwtException.class)
-  public ResponseEntity<Object> handleExpiredJwtToken(ExpiredJwtException exception) {
+  public ResponseEntity<?> handleExpiredJwtToken(ExpiredJwtException exception) {
     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("JWT token expired!");
   }
 
@@ -25,16 +26,22 @@ public class ExceptionsController {
         IllegalArgumentException.class,
         NullPointerException.class,
       })
-  public ResponseEntity<Object> handleBaseInputException(Exception exception) {
+  public ResponseEntity<?> handleBaseInputException(Exception exception) {
     return ResponseEntity.badRequest().body(String.format(exception.getMessage()));
   }
 
   @ExceptionHandler(value = {IOException.class, CsvException.class})
-  public ResponseEntity<Object> handleImportException(Exception exception) {
+  public ResponseEntity<?> handleImportException(Exception exception) {
     return ResponseEntity.internalServerError()
         .body(
             String.format(
                 "Problems importing principals from file.Cause:%s", exception.getMessage()));
+  }
+
+  @ExceptionHandler(value = {MethodArgumentNotValidException.class})
+  public ResponseEntity<?> handleInputValidation(MethodArgumentNotValidException exception) {
+    return ResponseEntity.internalServerError()
+        .body(String.format("Invalid input parameters! ", exception.getBody().getDetail()));
   }
 
   @ExceptionHandler(
@@ -45,7 +52,7 @@ public class ExceptionsController {
         RuntimeException.class,
         Exception.class
       })
-  public ResponseEntity<Object> handleInputValidationException(Exception exception) {
+  public ResponseEntity<?> handleInputValidationException(Exception exception) {
     return ResponseEntity.internalServerError().body(exception.getMessage());
   }
 }

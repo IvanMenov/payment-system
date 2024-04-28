@@ -5,7 +5,7 @@ import static com.emerchantpay.test.paymentsystembackend.constants.Constants.PAS
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.emerchantpay.test.paymentsystembackend.configurations.TestConfig;
-import com.emerchantpay.test.paymentsystembackend.model.JwtAuthenticationResponse;
+import com.emerchantpay.test.paymentsystembackend.model.JwtTokenResponse;
 import com.emerchantpay.test.paymentsystembackend.model.SigninRequest;
 import com.emerchantpay.test.paymentsystembackend.services.impl.AuthenticationService;
 import com.emerchantpay.test.paymentsystembackend.services.impl.JwtService;
@@ -35,7 +35,7 @@ class AuthenticationServiceTest {
   void testSignIn() {
     // this attempt should succeed
     SigninRequest signinRequestSuccess = new SigninRequest(MAIL, PASS);
-    JwtAuthenticationResponse responseSuccess = authenticationService.signin(signinRequestSuccess);
+    JwtTokenResponse responseSuccess = authenticationService.signin(signinRequestSuccess);
 
     assertNotNull(responseSuccess);
     assertNotNull(responseSuccess.getToken());

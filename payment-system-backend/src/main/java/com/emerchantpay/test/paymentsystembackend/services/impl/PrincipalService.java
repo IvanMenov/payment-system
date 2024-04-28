@@ -22,7 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class PrincipalService implements IPrincipalService, IImportPrincipalService {
+public class PrincipalService implements IPrincipalService<Principal>, IImportPrincipalService {
 
   @Autowired private PrincipalRepository principalRepository;
 
@@ -35,8 +35,8 @@ public class PrincipalService implements IPrincipalService, IImportPrincipalServ
    *     <p>creates Principal if it doesn't already exist, otherwise updates it
    */
   @Override
-  public void createOrUpdatePrincipal(Principal merchant) {
-    principalRepository.save(merchant);
+  public Principal createOrUpdatePrincipal(Principal merchant) {
+    return principalRepository.save(merchant);
   }
 
   /**
@@ -129,7 +129,9 @@ public class PrincipalService implements IPrincipalService, IImportPrincipalServ
                           .totalTransactionSum(new AtomicDouble(0))
                           .build();
                 }
-                if (principal != null) {
+
+                if (principal != null
+                    && principalRepository.findByEmail(principal.getEmail()).isEmpty()) {
                   createOrUpdatePrincipal(principal);
                 }
               });

@@ -2,7 +2,7 @@ package com.emerchantpay.test.paymentsystembackend.controllers.v1;
 
 import com.emerchantpay.test.paymentsystembackend.model.Principal;
 import com.emerchantpay.test.paymentsystembackend.model.PrincipalType;
-import com.emerchantpay.test.paymentsystembackend.services.IPrincipalService;
+import com.emerchantpay.test.paymentsystembackend.services.impl.PrincipalService;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping(path = "/api/v1/admin")
 public class AdminController {
 
-  @Autowired private IPrincipalService principalService;
+  @Autowired private PrincipalService principalService;
 
   @GetMapping("/merchants")
   public ResponseEntity<?> getMerchants(Authentication authentication) {
@@ -37,7 +37,7 @@ public class AdminController {
         .body(String.format("Merchant with id %s is not found!", merchantId));
   }
 
-  @DeleteMapping("/{merchantId}")
+  @DeleteMapping("/merchants/{merchantId}")
   public ResponseEntity<?> deleteMerchant(@PathVariable("merchantId") String merchantId) {
     long merchId = Long.parseLong(merchantId);
     if (principalService.findPrincipalById(merchId).isPresent()) {
@@ -49,8 +49,8 @@ public class AdminController {
     return ResponseEntity.ok(String.format("Delete merchant with id", merchId));
   }
 
-  @PutMapping("/merchant/{merchantId}/status/{status}")
-  public ResponseEntity<?> getTransactionForMerchant(
+  @PutMapping("/merchants/{merchantId}/status/{status}")
+  public ResponseEntity<?> changeMerchantStatus(
       @PathVariable String merchantId, @PathVariable String status, Authentication authentication) {
     if (!checkIsPrincipalAdmin(authentication)) {
       return new ResponseEntity<>("Merchants not allowed to update status!", HttpStatus.FORBIDDEN);
@@ -65,8 +65,8 @@ public class AdminController {
     }
     Principal merchant = merchantOptional.get();
     merchant.setStatus(newStatus);
-    principalService.createOrUpdatePrincipal(merchant);
-    return ResponseEntity.ok().body(String.format("Successfully updated merchant %s", merchantId));
+    Principal updatedPrincipal = principalService.createOrUpdatePrincipal(merchant);
+    return ResponseEntity.ok().body(updatedPrincipal);
   }
 
   private boolean checkIsPrincipalAdmin(Authentication authentication) {

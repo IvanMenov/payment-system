@@ -5,8 +5,8 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, String> {
@@ -19,9 +19,16 @@ public interface TransactionRepository extends JpaRepository<Transaction, String
   List<Transaction> findAllByMerchantId(Long id);
 
   @Modifying
-  @Query(value = "delete from transactions t where t.timestamp < ?1", nativeQuery = true)
-  @Transactional
-  void deleteTransactionsOlderThan(long timestamp);
+  @Query(value = "delete from transactions t where t.uuid in (:uuids)", nativeQuery = true)
+  void deleteTransactionsOlderThan(@Param("uuids") List<String> transactionUuids);
+
+  @Query(
+      value =
+          "select t.uuid,t.amount, t.status, t.type, t.customer_email, t.customer_phone, t.reference_transaction_uuid,"
+              + "t.principal_id, t.timestamp "
+              + "from transactions t where t.timestamp < ?1",
+      nativeQuery = true)
+  List<Transaction> getTransactionsOlderThanAnHour(long timestamp);
 
   @Query(
       value = "select count(t.uuid) from transactions t where t.principal_id = ?1",

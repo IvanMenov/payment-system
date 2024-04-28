@@ -1,0 +1,1 @@
+./gradlew spotlessApply clean build -x test

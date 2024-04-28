@@ -40,9 +40,18 @@ const ListMerchantsFromAdmin = (props) => {
             } else {
                 newStatus = 'ACTIVE'
             }
-            let response = await changeStatusOfMerchant(merchantId, newStatus)
+            let updatedMerchant = await changeStatusOfMerchant(merchantId, newStatus)
+
             let merchantToUpdate = merchants.filter(m => m.id === merchantId)
-            merchantToUpdate.status = newStatus
+            let newList =[]
+            for(let i=0; i< merchants.length; i++){
+                if(merchants[i].id !== merchantId){
+                    newList.push(merchants[i]);
+                }else{
+                    newList.push(updatedMerchant);
+                }
+            }
+            setMerchants(newList);
             Store.addNotification({
                 message: "Successfully updated merchant status! ",
                 type: "success",

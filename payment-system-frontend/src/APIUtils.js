@@ -69,7 +69,7 @@ export async function changeStatusOfMerchant(merchantId, status){
         if (!response.ok) {
             return Promise.reject(response);
         } else {
-            return response;
+            return response.json();
         }
     });
 }
