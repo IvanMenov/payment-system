@@ -5,6 +5,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class JwtAuthenticationResponse {
+public class LoginResponse {
   private String token;
+  private Principal principal;
 }
