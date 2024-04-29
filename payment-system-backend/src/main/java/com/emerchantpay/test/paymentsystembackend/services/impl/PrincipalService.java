@@ -7,6 +7,7 @@ import com.emerchantpay.test.paymentsystembackend.repositories.TransactionReposi
 import com.emerchantpay.test.paymentsystembackend.services.IAuthenticationService;
 import com.emerchantpay.test.paymentsystembackend.services.IImportPrincipalService;
 import com.emerchantpay.test.paymentsystembackend.services.IPrincipalService;
+import com.emerchantpay.test.paymentsystembackend.validation.EmailValidation;
 import com.google.common.util.concurrent.AtomicDouble;
 import com.opencsv.CSVParser;
 import com.opencsv.CSVParserBuilder;
@@ -15,6 +16,8 @@ import com.opencsv.CSVReaderBuilder;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,52 +95,94 @@ public class PrincipalService implements IPrincipalService<Principal>, IImportPr
     return principalRepository.findById(id);
   }
 
+  private List<String> failedPrincipalsList = new ArrayList<>();
+
   /**
    * @param stream insert Principal record in database from valid .csv files in appropriate form
    */
   @Override
   public void importPrincipalsFromCsv(InputStream stream) {
     CSVParser parser = new CSVParserBuilder().withSeparator(',').withIgnoreQuotations(true).build();
-
+    int createdPrincipals = 0;
+    int failedPrincipals = 0;
     try (Reader reader = new InputStreamReader(stream);
         CSVReader csvReader =
             new CSVReaderBuilder(reader).withSkipLines(0).withCSVParser(parser).build(); ) {
-      csvReader
-          .readAll()
-          .forEach(
-              array -> {
-                Principal principal = null;
-                if (array[0].equalsIgnoreCase(PrincipalType.ADMIN.getType())) {
-                  principal =
-                      Principal.builder()
-                          .name(array[1])
-                          .email(array[3])
-                          .password(authenticationService.encodePassword(array[4]))
-                          .principalType(PrincipalType.ADMIN)
-                          .status(Principal.Status.ACTIVE)
-                          .build();
+      List<String[]> lines = csvReader.readAll();
+      if (lines.isEmpty()) {
+        throw new RuntimeException("File is empty");
+      }
+      for (String[] array : lines) {
+        Principal principal = null;
+        if (validateInput(array)) {
+          if (array[0].equalsIgnoreCase(PrincipalType.ADMIN.getType())) {
+            if (validate(array)) {
+              principal =
+                  Principal.builder()
+                      .name(array[1])
+                      .email(array[3])
+                      .password(authenticationService.encodePassword(array[4]))
+                      .principalType(PrincipalType.ADMIN)
+                      .status(Principal.Status.ACTIVE)
+                      .build();
+            } else {
+              System.out.println(
+                  String.format("Failed to validate principal: %s", Arrays.toString(array)));
+              failedPrincipalsList.add(Arrays.toString(array));
+              failedPrincipals++;
+            }
 
-                } else if (array[0].equalsIgnoreCase(PrincipalType.MERCHANT.getType())) {
-                  principal =
-                      Principal.builder()
-                          .name(array[1])
-                          .description(array[2])
-                          .email(array[3])
-                          .password(authenticationService.encodePassword(array[4]))
-                          .principalType(PrincipalType.MERCHANT)
-                          .status(Principal.Status.INACTIVE)
-                          .totalTransactionSum(new AtomicDouble(0))
-                          .build();
-                }
+          } else if (array[0].equalsIgnoreCase(PrincipalType.MERCHANT.getType())) {
+            if (validate(array)) {
+              principal =
+                  Principal.builder()
+                      .name(array[1])
+                      .description(array[2])
+                      .email(array[3])
+                      .password(authenticationService.encodePassword(array[4]))
+                      .principalType(PrincipalType.MERCHANT)
+                      .status(Principal.Status.INACTIVE)
+                      .totalTransactionSum(new AtomicDouble(0))
+                      .build();
+            } else {
+              System.out.println(
+                  String.format("Failed to validate principal: %s", Arrays.toString(array)));
+              failedPrincipalsList.add(Arrays.toString(array));
+              failedPrincipals++;
+            }
+          }
 
-                if (principal != null
-                    && principalRepository.findByEmail(principal.getEmail()).isEmpty()) {
-                  createOrUpdatePrincipal(principal);
-                }
-              });
+          if (principal != null
+              && principalRepository.findByEmail(principal.getEmail()).isEmpty()) {
+            createOrUpdatePrincipal(principal);
+            createdPrincipals++;
+          }
+        }
+      }
 
     } catch (Exception exception) {
       throw new RuntimeException(exception.getMessage());
     }
+    if (failedPrincipals > createdPrincipals) {
+      StringBuilder builder = new StringBuilder();
+      for (String s : failedPrincipalsList) {
+        builder.append(s);
+        builder.append("\n");
+      }
+      throw new RuntimeException(
+          String.format("Failed principals are greater than created. %s", builder.toString()));
+    }
+  }
+
+  private boolean validate(String[] input) {
+    return EmailValidation.patternMatches(input[3]) && input[4].length() > 2;
+  }
+
+  private boolean validateInput(String[] input) {
+    return input.length >= 5
+        && input[0] != null
+        && input[1] != null
+        && input[3] != null
+        && input[4] != null;
   }
 }

@@ -1,0 +1,28 @@
+Prerequisites:
+Should have java 17 installed!
+Before running docker compose go to payment-system-backend and run buildScript.bat file. It will build the backend project.
+
+After building the backend, go to the payment-system directory and run the docker compose file (docker-compose up).
+This will spin up a db, payment-backend, payment-frontend containers. Once the setup is up and running you can access it
+from http://localhost:3000.
+
+Before loggin in you should import a valid .csv with admins/merchants (there is a valid one validPrincipals.csv in the root directory of the project)
+Once the import is successful you should be able to log in with any of the principals from the .csv(as long as the principals described in the .csv are in proper format :
+ - should have type merchant/admin under TYPE column
+ - should have valid email/pass(pass should be greater than 2 symbols)
+ 
+If log in as admin you should be able to see the list of merchant, active/deactivate then, delete them(if there are no transactions related to them), view transaction details for each merchant.
+
+If you log in as merchant you should be able to see all your transactions(Get transactions tab) and create new transaction.
+If you want to create new CHARGE transaction, you should pass valid amount (greater than 0), valid customer email/phone(phone should be 10 digits), valid customer amount (should be greater than the amount of the transaction itself).
+Once you submit the transaction, you can view its state from Get transaction tab.
+You should see a AUTHORIZE transaction first. If it is APPROVED after certain delay(defaults to 40sec) you should see 
+another transaction CHARGE with status APPROVED(provided that there was no REVERSAL transaction in the meantime)
+
+If you want to create REFUND transaction, you should pass the reference UUID of an APPROVED transaction of type CHARGE.
+
+If you want to create REVERSAL transaction, you should pass the reference UUID of an APPROVED transaction of type AUTHORIZE
+and the time it is created within the allowed time window.
+For better understanding go to PaymentService where there is detailed information + javadoc.
+
+I have added New Collection.postman_collection.json inside  payment-system-backend which you can import and run REST request for convenience.

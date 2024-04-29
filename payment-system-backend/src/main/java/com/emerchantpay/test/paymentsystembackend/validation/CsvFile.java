@@ -15,7 +15,9 @@ import java.lang.annotation.Target;
 public @interface CsvFile {
 
   String message() default
-      "File size is should be greater than 0 and less than " + MAX_SIZE_IN_MB + " MB!";
+      "Either input file is invalid or file size is not within the expected limits of "
+          + MAX_SIZE_IN_MB
+          + " MB!";
 
   Class<?>[] groups() default {};
 

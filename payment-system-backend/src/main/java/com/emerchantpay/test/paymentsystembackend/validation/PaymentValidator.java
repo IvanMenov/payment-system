@@ -5,7 +5,6 @@ import com.emerchantpay.test.paymentsystembackend.model.PaymentDTO;
 import com.emerchantpay.test.paymentsystembackend.model.TransactionType;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-import java.util.regex.Pattern;
 
 public class PaymentValidator implements ConstraintValidator<Payment, PaymentDTO> {
 
@@ -49,22 +48,5 @@ public class PaymentValidator implements ConstraintValidator<Payment, PaymentDTO
 
   private boolean checkAmount(Double amount) {
     return amount != null && amount > 0;
-  }
-
-  private static class PhoneValidation {
-    private static Pattern patternPhone = Pattern.compile("^\\d{10}$");
-
-    private static boolean patternMatches(String emailAddress) {
-      return patternPhone.matcher(emailAddress).matches();
-    }
-  }
-
-  private static class EmailValidation {
-
-    private static Pattern patternEmail = Pattern.compile("^(.+)@(\\S+)$");
-
-    private static boolean patternMatches(String emailAddress) {
-      return patternEmail.matcher(emailAddress).matches();
-    }
   }
 }

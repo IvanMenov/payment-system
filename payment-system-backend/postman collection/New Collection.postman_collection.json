@@ -1,0 +1,318 @@
+{
+	"info": {
+		"_postman_id": "15e50654-55df-4ffe-9cdf-92962557ca79",
+		"name": "New Collection",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "12872770"
+	},
+	"item": [
+		{
+			"name": "import principals",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "/D:/User/Downloads/incorrectData.csv"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/v1/import/principals",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"import",
+						"principals"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "sign in to get jwt token",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"email\": \"admin@abv.bg\",\r\n  \"password\":\"pass1\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/v1/auth/signin",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"auth",
+						"signin"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "who I am",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtZXJjaGFudDFAYWJ2LmJnIiwiaWF0IjoxNzE0MjM2NTIzLCJleHAiOjE3MTQyNDAxMjN9.qEWVI4UP6VBvDv-MATwIo6PKA4rNO67vutf5AE-LhTg",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"email\": \"admin@abv.bg\",\r\n  \"password\":\"pass1\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/v1/auth/whoami",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"auth",
+						"whoami"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get all merchants",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbkBhYnYuYmciLCJpYXQiOjE3MTQzMzIwNDgsImV4cCI6MTcxNDMzNTY0OH0.r4rJihIEX0wj0PWQJrIMTHPRr7CRvd-Nyp2a6bMRzfI",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/v1/admin/merchants",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"admin",
+						"merchants"
+					]
+				},
+				"description": "should be called only by admins"
+			},
+			"response": []
+		},
+		{
+			"name": "update merchant status",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbkBhYnYuYmciLCJpYXQiOjE3MTQyOTQ3MTQsImV4cCI6MTcxNDI5ODMxNH0.R2Au2uXI09QSyF3GJaJloIc78K1LTWMdxM_OdLNhmak",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/v1/admin/merchant/174/status/active",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"admin",
+						"merchant",
+						"174",
+						"status",
+						"active"
+					]
+				},
+				"description": "should be called by admins only"
+			},
+			"response": []
+		},
+		{
+			"name": "init charge transaction",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtZXJjaGFudDFAYWJ2LmJnIiwiaWF0IjoxNzE0MjQxNzM2LCJleHAiOjE3MTQyNDUzMzZ9.5uBpiO54K6yzqh_QBsdy71ywmeqmwOfrqWcvtSM6fZ4",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"amount\": 100,\r\n    \"transactionType\" :\"CHARGE\",\r\n    \"customer\":{\r\n        \"customerEmail\":\"customer@abv.bg\",\r\n        \"customerPhone\": \"555+789168797\",\r\n        \"customerAmount\":1111111\r\n    }\r\n\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/v1/payment/transactions/init",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"payment",
+						"transactions",
+						"init"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "init refund transaction",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtZXJjaGFudDFAYWJ2LmJnIiwiaWF0IjoxNzE0MjIyOTgwLCJleHAiOjE3MTQyMjY1ODB9.6RAZfZp4DpyeNnFzml09jYQE1bU2EeLgBT-5eQ6ZTqo",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"amount\": 100,\r\n    \"transactionType\" :\"REFUND\",\r\n    \"referenceId\":\"743089f9-bb49-49e9-a8f5-2119a3c91bd1\"\r\n\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/v1/payment/transactions/init",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"payment",
+						"transactions",
+						"init"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "init reversal transaction",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtZXJjaGFudDFAYWJ2LmJnIiwiaWF0IjoxNzE0MDUyMTIxLCJleHAiOjE3MTQwNTU3MjF9.Uzlw23s0MQ1j3sdzQq5vwKOxMz5q_LX0vsEN9GPqLmE",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"transactionType\" :\"REVERSAL\",\r\n    \"referenceId\":\"259227da-ca86-42d0-9998-a8b96dba9bb2\"\r\n\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/v1/payment/transactions/init",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"payment",
+						"transactions",
+						"init"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
