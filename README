@@ -8,7 +8,7 @@ from http://localhost:3000.
 
 Before loggin in you should import a valid .csv with admins/merchants (there is a valid one validPrincipals.csv in the root directory of the project)
 Once the import is successful you should be able to log in with any of the principals from the .csv(as long as the principals described in the .csv are in proper format :
- - should have type merchant/admin under TYPE column
+ - should have type merchant/admin under "type" column
  - should have valid email/pass(pass should be greater than 2 symbols)
  
 If log in as admin you should be able to see the list of merchant, active/deactivate then, delete them(if there are no transactions related to them), view transaction details for each merchant.
