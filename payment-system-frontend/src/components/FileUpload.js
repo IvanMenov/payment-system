@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import { importPrincipals } from '../APIUtils';
 import { styled } from '@mui/material/styles';
 import Button from '@mui/material/Button';
-import DeleteIcon from '@mui/icons-material/Delete';
 import SendIcon from '@mui/icons-material/Send';
 import Stack from '@mui/material/Stack';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';

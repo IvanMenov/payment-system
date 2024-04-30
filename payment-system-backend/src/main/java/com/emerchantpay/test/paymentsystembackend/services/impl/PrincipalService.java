@@ -13,13 +13,13 @@ import com.opencsv.CSVParser;
 import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import org.apache.commons.io.input.BOMInputStream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -102,21 +102,24 @@ public class PrincipalService implements IPrincipalService<Principal>, IImportPr
    */
   @Override
   public void importPrincipalsFromCsv(InputStream stream) {
+    // wrap the initial stream and return a new one without ByteOrderMark as its first bytes.
+    BOMInputStream bomIn = new BOMInputStream(stream);
     CSVParser parser = new CSVParserBuilder().withSeparator(',').withIgnoreQuotations(true).build();
-    int createdPrincipals = 0;
-    int failedPrincipals = 0;
-    try (Reader reader = new InputStreamReader(stream);
-        CSVReader csvReader =
-            new CSVReaderBuilder(reader).withSkipLines(0).withCSVParser(parser).build(); ) {
+    try (Reader reader = new InputStreamReader(bomIn, StandardCharsets.UTF_8);
+        CSVReader csvReader = new CSVReaderBuilder(reader).withCSVParser(parser).build(); ) {
       List<String[]> lines = csvReader.readAll();
       if (lines.isEmpty()) {
         throw new RuntimeException("File is empty");
       }
-      for (String[] array : lines) {
+      if (!validCsvColumns(lines.get(0))) {
+        throw new RuntimeException("Invalid .csv file");
+      }
+      for (int i = 1; i < lines.size(); i++) {
         Principal principal = null;
-        if (validateInput(array)) {
-          if (array[0].equalsIgnoreCase(PrincipalType.ADMIN.getType())) {
-            if (validate(array)) {
+        String[] array = lines.get(i);
+        if (validateRow(array)) {
+          switch (PrincipalType.valueOf(array[0].toUpperCase())) {
+            case ADMIN:
               principal =
                   Principal.builder()
                       .name(array[1])
@@ -125,15 +128,8 @@ public class PrincipalService implements IPrincipalService<Principal>, IImportPr
                       .principalType(PrincipalType.ADMIN)
                       .status(Principal.Status.ACTIVE)
                       .build();
-            } else {
-              System.out.println(
-                  String.format("Failed to validate principal: %s", Arrays.toString(array)));
-              failedPrincipalsList.add(Arrays.toString(array));
-              failedPrincipals++;
-            }
-
-          } else if (array[0].equalsIgnoreCase(PrincipalType.MERCHANT.getType())) {
-            if (validate(array)) {
+              break;
+            case MERCHANT:
               principal =
                   Principal.builder()
                       .name(array[1])
@@ -144,45 +140,37 @@ public class PrincipalService implements IPrincipalService<Principal>, IImportPr
                       .status(Principal.Status.INACTIVE)
                       .totalTransactionSum(new AtomicDouble(0))
                       .build();
-            } else {
-              System.out.println(
-                  String.format("Failed to validate principal: %s", Arrays.toString(array)));
-              failedPrincipalsList.add(Arrays.toString(array));
-              failedPrincipals++;
-            }
+              break;
           }
 
-          if (principal != null
-              && principalRepository.findByEmail(principal.getEmail()).isEmpty()) {
-            createOrUpdatePrincipal(principal);
-            createdPrincipals++;
-          }
+        } else {
+          System.out.println(
+              String.format("Failed to validate principal: %s", Arrays.toString(array)));
+        }
+        if (principal != null && principalRepository.findByEmail(principal.getEmail()).isEmpty()) {
+          createOrUpdatePrincipal(principal);
         }
       }
 
     } catch (Exception exception) {
       throw new RuntimeException(exception.getMessage());
     }
-    if (failedPrincipals > createdPrincipals) {
-      StringBuilder builder = new StringBuilder();
-      for (String s : failedPrincipalsList) {
-        builder.append(s);
-        builder.append("\n");
-      }
-      throw new RuntimeException(
-          String.format("Failed principals are greater than created. %s", builder.toString()));
-    }
   }
 
-  private boolean validate(String[] input) {
-    return EmailValidation.patternMatches(input[3]) && input[4].length() > 2;
+  private boolean validCsvColumns(String[] columns) {
+    return columns != null
+        && columns.length >= 5
+        && "type".equalsIgnoreCase(columns[0].trim())
+        && "name".equalsIgnoreCase(columns[1].trim())
+        && "description".equalsIgnoreCase(columns[2].trim())
+        && "email".equalsIgnoreCase(columns[3].trim())
+        && "password".equalsIgnoreCase(columns[4].trim());
   }
 
-  private boolean validateInput(String[] input) {
-    return input.length >= 5
-        && input[0] != null
-        && input[1] != null
-        && input[3] != null
-        && input[4] != null;
+  private boolean validateRow(String[] input) {
+    return (input[0].equalsIgnoreCase(PrincipalType.ADMIN.getType())
+            || input[0].equalsIgnoreCase(PrincipalType.MERCHANT.getType()))
+        && EmailValidation.patternMatches(input[3])
+        && input[4].length() >= 4;
   }
 }

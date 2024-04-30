@@ -1,16 +1,13 @@
 import React, { Component } from 'react';
 import { Route, Switch} from 'react-router-dom';
 import Login from './components/login/Login';
-import Profile from './components/userProfile/Profile';
+import Profile from './components/principalProfile/Profile';
 import NotFound from './common/NotFound';
 import { getCurrentUser } from './APIUtils';
-import { ACCESS_TOKEN } from './constants';
 import PrivateRoute from './common/PrivateRoute';
 import { ReactNotifications } from 'react-notifications-component'
 import 'react-notifications-component/dist/theme.css'
 import './App.css';
-import { Store } from 'react-notifications-component';
-import ListMerchantTransactions from './components/userProfile/ListMerchantTransactions';
 
 
 class App extends Component {

@@ -4,13 +4,13 @@ public enum PrincipalType {
   ADMIN("admin"),
   MERCHANT("merchant");
 
-  private String type;
+  private String prType;
 
   PrincipalType(String prType) {
-    this.type = prType;
+    this.prType = prType;
   }
 
   public String getType() {
-    return type;
+    return prType;
   }
 }

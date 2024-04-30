@@ -10,9 +10,8 @@ import { Button } from '@mui/material';
 import { useState, useEffect } from 'react';
 import { getAllMerchants, parseReadableStreamToJson, deletePrincipal, changeStatusOfMerchant } from '../../APIUtils';
 import { trackPromise } from 'react-promise-tracker';
-
 import { Store } from 'react-notifications-component';
-import AdminTab from './AdminTab';
+import TabsAdmin from './TabsAdmin';
 import ListMerchantTransactions from './ListMerchantTransactions';
 
 const ListMerchantsFromAdmin = (props) => {
@@ -146,7 +145,7 @@ const ListMerchantsFromAdmin = (props) => {
                     }}
                     noValidate
                     autoComplete="off">
-                    <AdminTab currentUser={user}></AdminTab>
+                    <TabsAdmin currentUser={user}></TabsAdmin>
 
                     <TableContainer component={Paper}>
                         <Table sx={{ minWidth: 650 }} aria-label="simple table">

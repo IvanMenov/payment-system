@@ -2,18 +2,20 @@ version: '3.8'
 
 services:
   payment-frontend:
+      image: 'payment-frontend:latest'
       build:
         context: ./payment-system-frontend
         dockerfile: Dockerfile
+      container_name: payment-frontend
       ports:
         - "3000:3000"
       depends_on:
         - payment-backend
   payment-backend:
-    image: 'payment-system:latest'
+    image: 'payment-backend:latest'
     build:
       context: ./payment-system-backend
-    container_name: payment
+    container_name: payment-backend
     depends_on:
       - db
     environment:

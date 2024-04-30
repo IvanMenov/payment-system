@@ -6,7 +6,7 @@ import { Store } from 'react-notifications-component';
 import { useState } from 'react';
 import { useHistory } from "react-router-dom"
 
-const AdminTab = (props) => {
+const TabsAdmin = (props) => {
     const history = useHistory();
     const [user, setUser] = useState(props.currentUser)
 
@@ -56,4 +56,4 @@ const AdminTab = (props) => {
 
     );
 }
-export default AdminTab
+export default TabsAdmin
