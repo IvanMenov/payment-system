@@ -94,8 +94,9 @@ a:hover {
 }
 
 .btn-block {
-  display: block;
-  width: 100%;
+  display: flex;
+  width: 50%;
+  font-size: large;
 }
 
 .btn-lg {
@@ -169,10 +170,10 @@ a:hover {
   position: relative;
   display: inline-block;
   padding: 4px 11px;
-  width: 100%;
+  width: 60%;
   height: 45px;
-  font-size: 0.87em;
-  line-height: 45px;
+  font-size: 1em;
+  line-height: 50px;
   color: rgba(0,0,0,.80);
   background-color: #fff;
   background-image: none;

@@ -24,6 +24,48 @@ const ListMerchantTransactions = (props) => {
         updateTransactions()
     }, []);
 
+    async function performAction(row) {
+
+        Store.addNotification({
+            message: "Currently unavailable",
+            type: "danger",
+            insert: "top",
+            container: "top-right",
+            animationIn: ["animate__animated", "animate__fadeIn"],
+            animationOut: ["animate__animated", "animate__fadeOut"],
+            dismiss: {
+                duration: 3000,
+                onScreen: true
+            }
+        });
+
+        //TODO; create implementation
+
+        // if (row.type == "AUTHORIZE" && row.status == "APPROVED") {
+        //     const reversal = {
+        //         "transactionType": "REVERSAL",
+        //         "referenceId": row.uuid,
+        //         "customer": {
+        //             "customerEmail": row.customerEmail,
+        //             "customerPhone": row.customerPhone
+        //         }
+        //     }
+
+
+        // } else if (row.type == "CHARGE" && row.status == "APPROVED") {
+        //     const refund = {
+        //         "transactionType": "REFUND",
+        //         "referenceId": row.uuid,
+        //         "amount": row.amount,
+        //         "customer": {
+        //             "customerEmail": row.customerEmail,
+        //             "customerPhone": row.customerPhone
+        //         }
+        //     }
+        // } else {
+
+        // }
+    }
     async function updateTransactions() {
         try {
             const updatePrincipal = await getMerchant(user.id)
@@ -70,20 +112,17 @@ const ListMerchantTransactions = (props) => {
     return (
         <Box
             component="form"
-            sx={{
-                '& .MuiTextField-root': { m: 1, width: '25ch' },
-            }}
+            sx={{ '& .MuiTextField-root': { m: 1, width: '25ch' }, }}
             noValidate
-            autoComplete="off"
-        >
+            autoComplete="off">
             <Box
                 gap={2}
                 p={2}>
                 {
                     comesFromAdmin === true ?
                         <>
-                            <Button sx={{marginTop :'10px'}}
-                            variant="contained" type='submit' >
+                            <Button sx={{ marginTop: '10px' }}
+                                variant="contained" type='submit' >
                                 Back
                             </Button>
                         </>
@@ -113,39 +152,55 @@ const ListMerchantTransactions = (props) => {
                     }}
 
                 />
-
             </Box>
-
             <TableContainer component={Paper}>
-                <Table sx={{ minWidth: 650 }} aria-label="simple table">
+                <Table>
                     <TableHead>
-                        <TableRow sx={{ border: 2 }}>
-                            <TableCell sx={{ border: 2 }}>Transaction UUID</TableCell>
-                            <TableCell sx={{ border: 2 }} >Amount</TableCell>
-                            <TableCell sx={{ border: 2 }}>Customer Email</TableCell>
-                            <TableCell sx={{ border: 2 }}>customer Phone</TableCell>
-                            <TableCell sx={{ border: 2 }}>Reference UUID</TableCell>
-                            <TableCell sx={{ border: 2 }}>Status</TableCell>
-                            <TableCell sx={{ border: 2 }}>Type</TableCell>
-                            <TableCell sx={{ border: 2 }}>timestamp</TableCell>
+                        <TableRow>
+                            <TableCell sx={{ border: 2, textAlign: 'center' }}>Transaction UUID</TableCell>
+                            <TableCell sx={{ border: 2, textAlign: 'center' }} >Amount</TableCell>
+                            <TableCell sx={{ border: 2, textAlign: 'center' }}>Customer Email</TableCell>
+                            <TableCell sx={{ border: 2, textAlign: 'center' }}>customer Phone</TableCell>
+                            <TableCell sx={{ border: 2, textAlign: 'center' }}>Reference UUID</TableCell>
+                            <TableCell sx={{ border: 2, textAlign: 'center' }}>Status</TableCell>
+                            <TableCell sx={{ border: 2, textAlign: 'center' }}>Type</TableCell>
+                            <TableCell sx={{ border: 2, textAlign: 'center' }}>Date/Time</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {rows.map((row) => (
-                            <TableRow
-                                key={row.uuid}
-                                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                            >
-                                <TableCell component="th" scope="row">
-                                    {row.uuid}
-                                </TableCell>
+                            <TableRow>
+                                <TableCell>{row.uuid}</TableCell>
                                 <TableCell>{row.amount}</TableCell>
                                 <TableCell>{row.customerEmail == null ? 'Not available' : row.customerEmail}</TableCell>
                                 <TableCell>{row.customerPhone == null ? 'Not available' : row.customerPhone}</TableCell>
                                 <TableCell>{row.referenceTransactionUUID == null ? 'Not available' : row.referenceTransactionUUID}</TableCell>
                                 <TableCell>{row.status}</TableCell>
                                 <TableCell>{row.type}</TableCell>
-                                <TableCell>{row.timestamp}</TableCell>
+                                <TableCell>
+                                    {
+                                        new Intl.DateTimeFormat('en-US',
+                                         { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' })
+                                         .format(row.timestamp)
+
+                                    }
+                                </TableCell>
+                                <Box
+                                    my={2}
+                                    display="flex"
+                                    alignItems="center"
+                                    gap={2}
+                                    p={2}>
+                                    {
+                                        row.type == "AUTHORIZE" || row.type == "CHARGE" ?
+                                            <Button variant="contained" onClick={() => performAction(row)}>
+                                                {row.type === "AUTHORIZE" ? "REVERSE" : "REFUND"}
+                                            </Button>
+                                            :
+                                            <></>
+                                    }
+
+                                </Box>
                             </TableRow>
                         ))}
                     </TableBody>

@@ -4,11 +4,12 @@ import com.emerchantpay.test.paymentsystembackend.model.PaymentDTO;
 import com.emerchantpay.test.paymentsystembackend.model.Principal;
 import com.emerchantpay.test.paymentsystembackend.model.Transaction;
 import com.emerchantpay.test.paymentsystembackend.model.TransactionType;
-import com.emerchantpay.test.paymentsystembackend.repositories.MerchantRepository;
+import com.emerchantpay.test.paymentsystembackend.repositories.PrincipalRepository;
 import com.emerchantpay.test.paymentsystembackend.repositories.TransactionRepository;
 import com.emerchantpay.test.paymentsystembackend.services.IPaymentService;
 import com.emerchantpay.test.paymentsystembackend.utils.TransactionFactory;
 import jakarta.annotation.PostConstruct;
+import jakarta.persistence.OptimisticLockException;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -28,7 +29,7 @@ public class PaymentService implements IPaymentService {
 
   @Autowired private TransactionRepository transactionRepository;
 
-  @Autowired private MerchantRepository merchantRepository;
+  @Autowired private PrincipalRepository principalRepository;
 
   @Autowired private TransactionTemplate transactionTemplate;
 
@@ -67,7 +68,7 @@ public class PaymentService implements IPaymentService {
           Transaction initializedTransaction =
               TransactionFactory.createTransaction(merchant, payment, null);
           merchant.addTransaction(initializedTransaction);
-          merchantRepository.save(merchant);
+          principalRepository.save(merchant);
           transactionRepository.save(initializedTransaction);
           return initializedTransaction;
         });
@@ -162,8 +163,7 @@ public class PaymentService implements IPaymentService {
         });
   }
 
-  private void preformCharging(
-      Principal merchant, PaymentDTO payment, Transaction initialTransaction) {
+  private void preformCharging(Principal merchant, PaymentDTO payment, Transaction initialTransaction) {
     if (isAuthorizationSuccessful(merchant, payment, initialTransaction)) {
       transactionTemplate.executeWithoutResult(
           (transactionStatus) -> {
@@ -185,15 +185,31 @@ public class PaymentService implements IPaymentService {
             // of authorization transaction from Approved to Reversed
             if (transactionRepository.findById(initialTransaction.getUuid()).get().getStatus()
                 == Transaction.Status.APPROVED) {
-              boolean shouldRetry = false;
-              do {
-                shouldRetry = merchant.updateTotalTransactionSum(payment.getAmount(), true);
-              } while (!shouldRetry);
+
               chargeTransaction.setStatus(Transaction.Status.APPROVED);
               // set reference of the authorization transaction to charge transaction
               initialTransaction.setReferenceTransactionUUID(chargeTransaction.getUuid());
               transactionRepository.save(initialTransaction);
-              merchantRepository.save(merchant);
+
+              boolean isUpdated = false;
+              Principal principal = merchant;
+
+              // in case the scheduledCleanup deleted a CHARGE transaction
+              // it would decrease the total transaction sum for the merchant and update the version
+              // property for that merchant
+              // which would trigger OptimisticLockException exception
+              // In that case we can retry getting the principal calling findPrincipalById retry
+              // updating the principal
+              while (!isUpdated) {
+                try {
+                  principal.updateTotalTransactionSum(payment.getAmount(), true);
+                  principalRepository.updateTotalTransactionSum(principal.getId(), principal.getTotalTransactionSum());
+                  isUpdated = true;
+                } catch (OptimisticLockException exception) {
+                  principal = principalRepository.findPrincipalById(merchant.getId()).get();
+                }
+              }
+
             } else {
               chargeTransaction.setStatus(Transaction.Status.ERROR);
             }
@@ -202,8 +218,7 @@ public class PaymentService implements IPaymentService {
     }
   }
 
-  private void performRefunding(
-      Principal merchant, PaymentDTO payment, Transaction initialTransaction) {
+  private void performRefunding(Principal merchant, PaymentDTO payment, Transaction initialTransaction) {
     transactionTemplate.executeWithoutResult(
         (transactionStatus) -> {
           // find charge transaction
@@ -215,16 +230,21 @@ public class PaymentService implements IPaymentService {
               && (chargeTransactionOptional.get().getType() == TransactionType.CHARGE)
               && (chargeTransactionOptional.get().getStatus() == Transaction.Status.APPROVED)) {
             chargeTransaction = chargeTransactionOptional.get();
-            boolean shouldRetry;
-            do {
-              shouldRetry = merchant.updateTotalTransactionSum(payment.getAmount(), false);
-            } while (!shouldRetry);
             initialTransaction.setStatus(Transaction.Status.APPROVED);
             chargeTransaction.setStatus(Transaction.Status.REFUNDED);
             transactionRepository.save(chargeTransaction);
-            merchantRepository.updateTotalTransactionSum(
-                merchant.getId(), merchant.getTotalTransactionSum());
 
+            boolean isUpdated = false;
+            Principal principal = merchant;
+            while (!isUpdated) {
+              try {
+                principal.updateTotalTransactionSum(payment.getAmount(), false);
+                principalRepository.updateTotalTransactionSum(principal.getId(), principal.getTotalTransactionSum());
+                isUpdated = true;
+              } catch (OptimisticLockException exception) {
+                  principal = principalRepository.findPrincipalById(merchant.getId()).get();
+              }
+            }
           } else {
             initialTransaction.setStatus(Transaction.Status.ERROR);
           }

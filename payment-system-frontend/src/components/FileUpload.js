@@ -22,25 +22,24 @@ const FileUpload = (props) => {
         bottom: 0,
         left: 0,
         whiteSpace: 'nowrap',
-        width: 1,
+        width: 2,
     });
     const [csvFile, setCsvFile] = useState({});
 
 
     const handleFileImport = (e) => {
-        let name = 'csv_file_to_import';
         let csv_file = e.target.files[0];
-        setCsvFile(values => ({ ...values, [name]: csv_file }))
+        setCsvFile(csv_file)
 
     }
 
     //File Submit Handler
     const handleSubmitFile = (event) => {
         event.preventDefault();
-        if (csvFile.csv_file_to_import != null) {
+        if (csvFile != null) {
 
             let formData = new FormData();
-            formData.append('file', csvFile.csv_file_to_import);
+            formData.append('file', csvFile);
             trackPromise(
                 importPrincipals(formData)
                 .then(response => {
@@ -91,21 +90,21 @@ const FileUpload = (props) => {
     return (
         <form onSubmit={handleSubmitFile}>
 
-            <Stack direction="row" spacing={2}>
+            <Stack direction="row"  alignItems="center"  justifyContent="center" spacing={3}>
             <Button
+             size='medium'
                 onChange={handleFileImport}
                 component="label"
                 role={undefined}
                 variant="contained"
-                tabIndex={-1}
                 startIcon={<CloudUploadIcon />}
             >
-                Upload file
+                Upload principals
                 <VisuallyHiddenInput type="file" />
             </Button>
             
-            <Button onClick={handleSubmitFile} variant="contained" endIcon={<SendIcon />}>
-                Import Principals
+            <Button size='medium' onClick={handleSubmitFile} variant="contained" endIcon={<SendIcon />}>
+                Import principals
             </Button>
             </Stack>
 

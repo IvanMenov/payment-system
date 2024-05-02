@@ -3,13 +3,15 @@ package com.emerchantpay.test.paymentsystembackend.model;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-import com.google.common.util.concurrent.AtomicDouble;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -30,6 +32,7 @@ public class Principal implements UserDetails {
   private Long id;
 
   private String name;
+
   private String description;
 
   @Email(message = "Email should be valid")
@@ -40,8 +43,8 @@ public class Principal implements UserDetails {
 
   private Status status;
 
-  @Column(name = "total_transaction_sum")
-  private AtomicDouble totalTransactionSum;
+  @Column(name = "total_transaction_sum", precision=8, scale = 2)
+  private BigDecimal totalTransactionSum;
 
   @OneToMany(fetch = FetchType.LAZY, mappedBy = "merchant", cascade = CascadeType.ALL)
   private List<Transaction> transactionList;
@@ -49,16 +52,17 @@ public class Principal implements UserDetails {
   @Column(name = "principal_type")
   private PrincipalType principalType;
 
+  @Version private Integer version;
+
   public void addTransaction(Transaction transaction) {
     transactionList.add(transaction);
   }
 
-  public boolean updateTotalTransactionSum(double amount, boolean shouldAdd) {
-    double currentSum = totalTransactionSum.get();
+  public void updateTotalTransactionSum(double amount, boolean shouldAdd) {
     if (shouldAdd) {
-      return totalTransactionSum.compareAndSet(currentSum, currentSum + amount);
+      totalTransactionSum = totalTransactionSum.add(BigDecimal.valueOf(amount));
     } else {
-      return totalTransactionSum.compareAndSet(currentSum, currentSum - amount);
+      totalTransactionSum = totalTransactionSum.subtract(BigDecimal.valueOf(amount));
     }
   }
 
@@ -96,6 +100,19 @@ public class Principal implements UserDetails {
   @Override
   public boolean isEnabled() {
     return true;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    Principal principal = (Principal) o;
+    return Objects.equals(id, principal.id) && Objects.equals(email, principal.email);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(id, email);
   }
 
   public static enum Status {

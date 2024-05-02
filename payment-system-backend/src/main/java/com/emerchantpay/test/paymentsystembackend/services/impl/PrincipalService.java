@@ -14,6 +14,7 @@ import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import java.io.*;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -138,7 +139,7 @@ public class PrincipalService implements IPrincipalService<Principal>, IImportPr
                       .password(authenticationService.encodePassword(array[4]))
                       .principalType(PrincipalType.MERCHANT)
                       .status(Principal.Status.INACTIVE)
-                      .totalTransactionSum(new AtomicDouble(0))
+                      .totalTransactionSum(BigDecimal.valueOf(0))
                       .build();
               break;
           }
