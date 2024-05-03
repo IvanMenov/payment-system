@@ -1,6 +1,7 @@
 Prerequisites:
 Should have java 17 installed!
 Before running docker compose go to payment-system-backend and run buildScript.bat file. It will build the backend project.
+If you run the buildScript passing "with-test" as input parameter, the script would run tests(unit + integration test) before building the executable files.
 
 After building the backend, go to the payment-system directory and run the docker compose file (docker-compose up).
 This will spin up a db, payment-backend, payment-frontend containers. Once the setup is up and running you can access it
