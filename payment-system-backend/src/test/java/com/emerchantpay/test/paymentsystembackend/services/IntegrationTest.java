@@ -158,7 +158,11 @@ public class IntegrationTest {
         list.get(1).getStatus().getStatusType(), Transaction.Status.APPROVED.getStatusType());
 
     assertTrue(
-        principalService.findPrincipalById(principal.getId()).get().getTotalTransactionSum().doubleValue()
+        principalService
+                .findPrincipalById(principal.getId())
+                .get()
+                .getTotalTransactionSum()
+                .doubleValue()
             == 100.0);
   }
 
@@ -203,7 +207,11 @@ public class IntegrationTest {
       }
     }
     assertTrue(
-        principalService.findPrincipalById(principal.getId()).get().getTotalTransactionSum().doubleValue()
+        principalService
+                .findPrincipalById(principal.getId())
+                .get()
+                .getTotalTransactionSum()
+                .doubleValue()
             == 1);
   }
 
@@ -248,7 +256,11 @@ public class IntegrationTest {
       }
     }
     assertTrue(
-        principalService.findPrincipalById(principal.getId()).get().getTotalTransactionSum().doubleValue()
+        principalService
+                .findPrincipalById(principal.getId())
+                .get()
+                .getTotalTransactionSum()
+                .doubleValue()
             == 1);
   }
 

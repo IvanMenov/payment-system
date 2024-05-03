@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -43,7 +42,7 @@ public class Principal implements UserDetails {
 
   private Status status;
 
-  @Column(name = "total_transaction_sum", precision=8, scale = 2)
+  @Column(name = "total_transaction_sum", precision = 8, scale = 2)
   private BigDecimal totalTransactionSum;
 
   @OneToMany(fetch = FetchType.LAZY, mappedBy = "merchant", cascade = CascadeType.ALL)
@@ -52,7 +51,7 @@ public class Principal implements UserDetails {
   @Column(name = "principal_type")
   private PrincipalType principalType;
 
-  @Version private Integer version;
+  @Version private Long version;
 
   public void addTransaction(Transaction transaction) {
     transactionList.add(transaction);

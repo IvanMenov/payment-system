@@ -6,12 +6,11 @@ import com.emerchantpay.test.paymentsystembackend.model.TransactionType;
 import com.emerchantpay.test.paymentsystembackend.repositories.PrincipalRepository;
 import com.emerchantpay.test.paymentsystembackend.repositories.TransactionRepository;
 import com.emerchantpay.test.paymentsystembackend.services.IScheduledTask;
+import jakarta.persistence.OptimisticLockException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import jakarta.persistence.OptimisticLockException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -29,8 +28,9 @@ public class ScheduledCleanup implements IScheduledTask {
   @Autowired private TransactionTemplate transactionTemplate;
 
   /**
-   * Delete transactions that are older than 1 hour this functionality is executed asynchronously every hour.
-   * If the transaction to be deleted is of type CHARGE and status APPROVED, subtract that amount from the principal total amount
+   * Delete transactions that are older than 1 hour this functionality is executed asynchronously
+   * every hour. If the transaction to be deleted is of type CHARGE and status APPROVED, subtract
+   * that amount from the principal total amount
    */
   @Override
   @Scheduled(fixedRate = HOURLY)
@@ -67,17 +67,18 @@ public class ScheduledCleanup implements IScheduledTask {
             transactionRepository.deleteTransactionsOlderThan(uuidsToDelete);
             merchantToAmountToBeDecreaseFrom.forEach(
                 (merchant, amountToDecrease) -> {
-                    boolean isUpdated = false;
-                    Principal principal = merchant;
-                    while (!isUpdated) {
-                        try {
-                            principal.updateTotalTransactionSum(amountToDecrease, false);
-                            principalRepository.updateTotalTransactionSum(principal.getId(), principal.getTotalTransactionSum());
-                            isUpdated = true;
-                        } catch (OptimisticLockException exception) {
-                            principal = principalRepository.findPrincipalById(merchant.getId()).get();
-                        }
+                  boolean isUpdated = false;
+                  Principal principal =
+                      principalRepository.findPrincipalById(merchant.getId()).get();
+                  while (!isUpdated) {
+                    try {
+                      principal.updateTotalTransactionSum(amountToDecrease, false);
+                      principalRepository.save(principal);
+                      isUpdated = true;
+                    } catch (OptimisticLockException exception) {
+                      principal = principalRepository.findPrincipalById(merchant.getId()).get();
                     }
+                  }
                 });
           }
         });

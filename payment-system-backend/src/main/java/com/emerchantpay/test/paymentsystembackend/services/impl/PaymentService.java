@@ -163,7 +163,8 @@ public class PaymentService implements IPaymentService {
         });
   }
 
-  private void preformCharging(Principal merchant, PaymentDTO payment, Transaction initialTransaction) {
+  private void preformCharging(
+      Principal merchant, PaymentDTO payment, Transaction initialTransaction) {
     if (isAuthorizationSuccessful(merchant, payment, initialTransaction)) {
       transactionTemplate.executeWithoutResult(
           (transactionStatus) -> {
@@ -192,7 +193,7 @@ public class PaymentService implements IPaymentService {
               transactionRepository.save(initialTransaction);
 
               boolean isUpdated = false;
-              Principal principal = merchant;
+              Principal principal = principalRepository.findPrincipalById(merchant.getId()).get();
 
               // in case the scheduledCleanup deleted a CHARGE transaction
               // it would decrease the total transaction sum for the merchant and update the version
@@ -203,7 +204,7 @@ public class PaymentService implements IPaymentService {
               while (!isUpdated) {
                 try {
                   principal.updateTotalTransactionSum(payment.getAmount(), true);
-                  principalRepository.updateTotalTransactionSum(principal.getId(), principal.getTotalTransactionSum());
+                  principalRepository.save(principal);
                   isUpdated = true;
                 } catch (OptimisticLockException exception) {
                   principal = principalRepository.findPrincipalById(merchant.getId()).get();
@@ -218,7 +219,8 @@ public class PaymentService implements IPaymentService {
     }
   }
 
-  private void performRefunding(Principal merchant, PaymentDTO payment, Transaction initialTransaction) {
+  private void performRefunding(
+      Principal merchant, PaymentDTO payment, Transaction initialTransaction) {
     transactionTemplate.executeWithoutResult(
         (transactionStatus) -> {
           // find charge transaction
@@ -235,14 +237,14 @@ public class PaymentService implements IPaymentService {
             transactionRepository.save(chargeTransaction);
 
             boolean isUpdated = false;
-            Principal principal = merchant;
+            Principal principal = principalRepository.findPrincipalById(merchant.getId()).get();
             while (!isUpdated) {
               try {
                 principal.updateTotalTransactionSum(payment.getAmount(), false);
-                principalRepository.updateTotalTransactionSum(principal.getId(), principal.getTotalTransactionSum());
+                principalRepository.save(principal);
                 isUpdated = true;
               } catch (OptimisticLockException exception) {
-                  principal = principalRepository.findPrincipalById(merchant.getId()).get();
+                principal = principalRepository.findPrincipalById(merchant.getId()).get();
               }
             }
           } else {

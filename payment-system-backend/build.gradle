@@ -38,11 +38,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'com.opencsv:opencsv:5.9'
     implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'
-    implementation 'com.google.guava:guava:33.1.0-jre'
     implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
     implementation 'io.jsonwebtoken:jjwt-impl:0.12.5'
     implementation 'io.jsonwebtoken:jjwt-jackson:0.12.5'
-    // https://mvnrepository.com/artifact/commons-io/commons-io
     implementation 'commons-io:commons-io:2.16.1'
 
 

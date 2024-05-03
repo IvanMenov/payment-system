@@ -8,7 +8,6 @@ import com.emerchantpay.test.paymentsystembackend.services.IAuthenticationServic
 import com.emerchantpay.test.paymentsystembackend.services.IImportPrincipalService;
 import com.emerchantpay.test.paymentsystembackend.services.IPrincipalService;
 import com.emerchantpay.test.paymentsystembackend.validation.EmailValidation;
-import com.google.common.util.concurrent.AtomicDouble;
 import com.opencsv.CSVParser;
 import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
