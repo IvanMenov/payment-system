@@ -186,7 +186,6 @@ public class PaymentService implements IPaymentService {
             // of authorization transaction from Approved to Reversed
             if (transactionRepository.findById(initialTransaction.getUuid()).get().getStatus()
                 == Transaction.Status.APPROVED) {
-
               chargeTransaction.setStatus(Transaction.Status.APPROVED);
               // set reference of the authorization transaction to charge transaction
               initialTransaction.setReferenceTransactionUUID(chargeTransaction.getUuid());
@@ -214,6 +213,7 @@ public class PaymentService implements IPaymentService {
             } else {
               chargeTransaction.setStatus(Transaction.Status.ERROR);
             }
+            chargeTransaction.setTimestamp(System.currentTimeMillis());
             transactionRepository.save(chargeTransaction);
           });
     }

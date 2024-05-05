@@ -41,9 +41,7 @@ public class PaymentValidator implements ConstraintValidator<Payment, PaymentDTO
   }
 
   private boolean checkCustomerAmount(CustomerDTO customer, Double amount) {
-    return customer != null
-        && customer.getCustomerAmount() != null
-        && customer.getCustomerAmount() > amount;
+    return customer != null && customer.getCustomerAmount() != null;
   }
 
   private boolean checkAmount(Double amount) {

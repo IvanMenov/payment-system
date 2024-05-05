@@ -9,9 +9,11 @@ import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import Paper from '@mui/material/Paper';
 import { useState, useEffect } from 'react';
-import { getMerchant, parseReadableStreamToJson } from '../../APIUtils';
+import { getMerchant, fetchAPI, parseReadableStreamToJson } from '../../APIUtils';
+import { API_BASE_URL } from '../../constants';
 import { Store } from 'react-notifications-component';
 import { Button } from '@mui/material';
+import { trackPromise } from 'react-promise-tracker';
 
 
 const ListMerchantTransactions = (props) => {
@@ -21,50 +23,71 @@ const ListMerchantTransactions = (props) => {
 
 
     useEffect(() => {
-        updateTransactions()
+        console.log(user);
+        updateTransactions();
     }, []);
 
-    async function performAction(row) {
-
-        Store.addNotification({
-            message: "Currently unavailable",
-            type: "danger",
-            insert: "top",
-            container: "top-right",
-            animationIn: ["animate__animated", "animate__fadeIn"],
-            animationOut: ["animate__animated", "animate__fadeOut"],
-            dismiss: {
-                duration: 3000,
-                onScreen: true
+    async function performRefund(row) {
+        const refund = {
+            "transactionType": "REFUND",
+            "referenceId": row.uuid,
+            "amount": row.amount,
+            "customer": {
+                "customerEmail": row.customerEmail,
+                "customerPhone": row.customerPhone
             }
-        });
+        }
+        trackPromise(
+            fetchAPI("POST", API_BASE_URL + "/api/v1/payment/transactions/init", refund)
+                .then(response => {
+                    updateTransactions();
 
-        //TODO; create implementation
+                }).catch(async error => {
+                    const errs = await parseReadableStreamToJson(error.body);
+                    Store.addNotification({
+                        message: errs,
+                        type: "danger",
+                        insert: "top",
+                        container: "top-right",
+                        animationIn: ["animate__animated", "animate__fadeIn"],
+                        animationOut: ["animate__animated", "animate__fadeOut"],
+                        dismiss: {
+                            duration: 5000,
+                            onScreen: true
+                        }
+                    });
+                }))
+    }
+    async function performReversal(row) {
+        const reversal = {
+            "transactionType": "REVERSAL",
+            "referenceId": row.uuid,
+            "customer": {
+                "customerEmail": row.customerEmail,
+                "customerPhone": row.customerPhone
+            }
+        }
+        trackPromise(
+            fetchAPI("POST", API_BASE_URL + "/api/v1/payment/transactions/init", reversal)
+                .then(response => {
+                    updateTransactions();
 
-        // if (row.type == "AUTHORIZE" && row.status == "APPROVED") {
-        //     const reversal = {
-        //         "transactionType": "REVERSAL",
-        //         "referenceId": row.uuid,
-        //         "customer": {
-        //             "customerEmail": row.customerEmail,
-        //             "customerPhone": row.customerPhone
-        //         }
-        //     }
+                }).catch(async error => {
+                    const errs = await parseReadableStreamToJson(error.body);
+                    Store.addNotification({
+                        message: errs,
+                        type: "danger",
+                        insert: "top",
+                        container: "top-right",
+                        animationIn: ["animate__animated", "animate__fadeIn"],
+                        animationOut: ["animate__animated", "animate__fadeOut"],
+                        dismiss: {
+                            duration: 5000,
+                            onScreen: true
+                        }
+                    });
+                }))
 
-
-        // } else if (row.type == "CHARGE" && row.status == "APPROVED") {
-        //     const refund = {
-        //         "transactionType": "REFUND",
-        //         "referenceId": row.uuid,
-        //         "amount": row.amount,
-        //         "customer": {
-        //             "customerEmail": row.customerEmail,
-        //             "customerPhone": row.customerPhone
-        //         }
-        //     }
-        // } else {
-
-        // }
     }
     async function updateTransactions() {
         try {
@@ -107,6 +130,36 @@ const ListMerchantTransactions = (props) => {
                 }
             });
         };
+
+    }
+
+    function ReversalOrRefundButton(props) {
+        let row = props.rowData
+        if (row.type == "AUTHORIZE" && row.status == "APPROVED") {
+            return <Box
+                my={2}
+                display="flex"
+                alignItems="center"
+                gap={2}
+                p={2}>
+                <Button variant="contained" onClick={() => performReversal(row)}>
+                    REVERSE
+                </Button>
+            </Box>
+        } else if (row.type == "CHARGE" && row.status == "APPROVED") {
+            return <Box
+                my={2}
+                display="flex"
+                alignItems="center"
+                gap={2}
+                p={2}>
+                <Button variant="contained" onClick={() => performRefund(row)}>
+                    REFUND
+                </Button>
+            </Box>
+        } else {
+            return <></>
+        }
 
     }
     return (
@@ -175,32 +228,21 @@ const ListMerchantTransactions = (props) => {
                                 <TableCell>{row.customerEmail == null ? 'Not available' : row.customerEmail}</TableCell>
                                 <TableCell>{row.customerPhone == null ? 'Not available' : row.customerPhone}</TableCell>
                                 <TableCell>{row.referenceTransactionUUID == null ? 'Not available' : row.referenceTransactionUUID}</TableCell>
-                                <TableCell>{row.status}</TableCell>
+                                <TableCell>{row.status == null ? 'CREATED' : row.status}</TableCell>
                                 <TableCell>{row.type}</TableCell>
                                 <TableCell>
                                     {
                                         new Intl.DateTimeFormat('en-US',
-                                         { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' })
-                                         .format(row.timestamp)
+                                            { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' })
+                                            .format(row.timestamp)
 
                                     }
                                 </TableCell>
-                                <Box
-                                    my={2}
-                                    display="flex"
-                                    alignItems="center"
-                                    gap={2}
-                                    p={2}>
-                                    {
-                                        row.type == "AUTHORIZE" || row.type == "CHARGE" ?
-                                            <Button variant="contained" onClick={() => performAction(row)}>
-                                                {row.type === "AUTHORIZE" ? "REVERSE" : "REFUND"}
-                                            </Button>
-                                            :
-                                            <></>
-                                    }
-
-                                </Box>
+                                {comesFromAdmin != true ?
+                                    <ReversalOrRefundButton rowData={row} currentUser={user}></ReversalOrRefundButton>
+                                    :
+                                    <></>
+                                }
                             </TableRow>
                         ))}
                     </TableBody>
