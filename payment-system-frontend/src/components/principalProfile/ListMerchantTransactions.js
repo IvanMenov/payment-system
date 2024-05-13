@@ -23,7 +23,6 @@ const ListMerchantTransactions = (props) => {
 
 
     useEffect(() => {
-        console.log(user);
         updateTransactions();
     }, []);
 

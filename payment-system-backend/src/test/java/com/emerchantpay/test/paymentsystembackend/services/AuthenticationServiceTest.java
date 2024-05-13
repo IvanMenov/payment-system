@@ -17,7 +17,6 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-// @SpringBootTest
 @WebMvcTest(AuthenticationService.class)
 @Import({JwtService.class, TestConfig.class})
 class AuthenticationServiceTest {

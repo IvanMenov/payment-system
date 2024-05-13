@@ -94,6 +94,15 @@ const NewTransaction = (props) => {
             trackPromise(
                 fetchAPI("POST", API_BASE_URL + "/api/v1/payment/transactions/init", payment)
                     .then(response => {
+                        setCustomer({
+                            customerEmail: '',
+                            customerPhone: '',
+                            customerAmount: ''
+                        })
+                        setTransaction({
+                            amount: '',
+                            referenceId: ''
+                        })
                         Store.addNotification({
                             message: "Successfully initialized transaction!",
                             type: "success",
