@@ -19,6 +19,7 @@ const ListMerchantsFromAdmin = (props) => {
     const [merchants, setMerchants] = useState([])
     const [goToMerchantDetails, setGoToMerchantDetails] = useState(false)
     const [currentMerchant, setCurrentMerchant] = useState()
+    const [ keycloakInstance ] =useState(props.keycloakInstance);
 
     useEffect(() => {
         findAllMerchants()
@@ -39,7 +40,7 @@ const ListMerchantsFromAdmin = (props) => {
             } else {
                 newStatus = 'ACTIVE'
             }
-            let updatedMerchant = await changeStatusOfMerchant(merchantId, newStatus)
+            let updatedMerchant = await changeStatusOfMerchant(merchantId, newStatus, keycloakInstance.token)
 
             let merchantToUpdate = merchants.filter(m => m.id === merchantId)
             let newList =[]
@@ -82,7 +83,7 @@ const ListMerchantsFromAdmin = (props) => {
     async function deleteMerchant(event, merchantId) {
         event.preventDefault();
         try {
-            let response = await deletePrincipal(merchantId)
+            let response = await deletePrincipal(merchantId,keycloakInstance.token)
             setMerchants(merchants.filter(merchant => merchant.id !== merchantId))
             Store.addNotification({
                 message: "Successfully deleted merchant with id: " + merchantId,
@@ -114,7 +115,7 @@ const ListMerchantsFromAdmin = (props) => {
     }
     async function findAllMerchants() {
         try {
-            const merchants = await getAllMerchants();
+            const merchants = await getAllMerchants(keycloakInstance.token);
             setMerchants(merchants)
         } catch (error) {
             const errorResponse = await parseReadableStreamToJson(error.body)
@@ -136,7 +137,7 @@ const ListMerchantsFromAdmin = (props) => {
     return (
         <>
             {goToMerchantDetails == true ?
-                <ListMerchantTransactions currentUser={currentMerchant} comesFromAdmin={true}></ListMerchantTransactions>
+                <ListMerchantTransactions keycloakInstance={keycloakInstance} currentUser={currentMerchant} comesFromAdmin={true}></ListMerchantTransactions>
                 :
                 <Box
                     component="form"
@@ -145,7 +146,7 @@ const ListMerchantsFromAdmin = (props) => {
                     }}
                     noValidate
                     autoComplete="off">
-                    <TabsAdmin currentUser={user}></TabsAdmin>
+                    <TabsAdmin keycloakInstance={keycloakInstance} currentUser={user}></TabsAdmin>
 
                     <TableContainer component={Paper}>
                         <Table sx={{ minWidth: 650 }} aria-label="simple table">

@@ -9,9 +9,10 @@ import { useHistory } from "react-router-dom"
 const TabsAdmin = (props) => {
     const history = useHistory();
     const [user, setUser] = useState(props.currentUser)
+    const [keycloakInstance] = useState(props.keycloakInstance);
 
     const handleLogout = () => {
-        localStorage.removeItem(ACCESS_TOKEN);
+        keycloakInstance.logout();
         setUser({});
         Store.addNotification({
             message: "Successfully logged out!",
@@ -25,8 +26,6 @@ const TabsAdmin = (props) => {
                 onScreen: true
             }
         });
-        history.push('/login');
-        history.go();
     }
 
     return (
@@ -35,12 +34,11 @@ const TabsAdmin = (props) => {
                 my={2}
                 display="flex"
                 alignItems="center"
-                gap={2}
+                justifyContent='center'
+                gap={0}
                 p={2}
             >
-                <Button variant="contained" type='submit' onClick={handleLogout}>
-                    Logout
-                </Button>
+
                 <TextField
                     value={user.email}
                     id="outlined-read-only-input"
@@ -52,6 +50,9 @@ const TabsAdmin = (props) => {
                     }}
 
                 />
+                <Button variant="contained" type='submit' onClick={handleLogout}>
+                    Logout
+                </Button>
             </Box></>
 
     );

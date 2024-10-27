@@ -1,11 +1,11 @@
-import { API_BASE_URL, ACCESS_TOKEN, PRINCIPAL } from './constants';
+import { API_BASE_URL } from './constants';
 
-export function fetchAPI(methodType, url, data) {
-        return fetch(url, {
-            method: methodType,
+export function initTransaction( data, token, merchantId) {
+        return fetch(API_BASE_URL + "/api/v1/payment/transactions/init/"+merchantId, {
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + localStorage.getItem(ACCESS_TOKEN)
+                'Authorization': 'Bearer ' + token
             },
             body: JSON.stringify(data)
         })
@@ -19,14 +19,14 @@ export function fetchAPI(methodType, url, data) {
    
 }
 
-export function login(loginRequest) {
-    return fetch(API_BASE_URL + "/api/v1/auth/signin", 
+export function systemLogin(token) {
+    return fetch(API_BASE_URL + "/api/v1/principal/signin", 
     {
-        method: 'POST',
+        method: 'GET',
         headers: {
             'Content-type': 'application/json',
-        },
-        body: JSON.stringify(loginRequest)
+            'Authorization': 'Bearer ' + token
+        }
     }).then(response => {
         if (!response.ok) {
             return Promise.reject(response.json);
@@ -37,20 +37,6 @@ export function login(loginRequest) {
     );
 }
 
-export function importPrincipals(formData){
-    return fetch(API_BASE_URL + "/api/v1/import/principals", {
-        method: "POST",
-        body: formData
-    }).then(response => {
-        if (response.status !== 202) {
-            return Promise.reject(response);
-        } else {
-            return response;
-        }
-    }
-    );
-
-}
 
 export async function parseReadableStreamToJson (stream) {
     const data = (await stream.getReader().read()).value
@@ -58,12 +44,12 @@ export async function parseReadableStreamToJson (stream) {
     return str;
 }
 
-export async function changeStatusOfMerchant(merchantId, status){
+export async function changeStatusOfMerchant(merchantId, status, token){
     return fetch(API_BASE_URL + "/api/v1/admin/merchants/"+merchantId+"/status/"+status, {
         method: "PUT",
         headers: {
             'Content-type': 'application/json',
-            'Authorization': 'Bearer ' + localStorage.getItem(ACCESS_TOKEN)
+            'Authorization': 'Bearer ' + token
         }
     }).then(response => {
         if (!response.ok) {
@@ -73,12 +59,12 @@ export async function changeStatusOfMerchant(merchantId, status){
         }
     });
 }
-export async function deletePrincipal(merchantId){
+export async function deletePrincipal(merchantId, token){
     return fetch(API_BASE_URL + "/api/v1/admin/merchants/"+merchantId, {
         method: "DELETE",
         headers: {
             'Content-type': 'application/json',
-            'Authorization': 'Bearer ' + localStorage.getItem(ACCESS_TOKEN)
+            'Authorization': 'Bearer ' + token
         }
     }).then(response => {
         if (!response.ok) {
@@ -88,12 +74,12 @@ export async function deletePrincipal(merchantId){
         }
     });
 }
-export async function getAllMerchants(){
+export async function getAllMerchants(token){
     return fetch(API_BASE_URL + "/api/v1/admin/merchants", {
         method: "GET",
         headers: {
             'Content-type': 'application/json',
-            'Authorization': 'Bearer ' + localStorage.getItem(ACCESS_TOKEN)
+            'Authorization': 'Bearer ' + token
         }
     }).then(response => {
         if (!response.ok) {
@@ -103,29 +89,12 @@ export async function getAllMerchants(){
         }
     });
 }
-export async function getMerchant(merchantId) {
-    return fetch(API_BASE_URL + "/api/v1/admin/merchants/"+ merchantId, {
+export async function getMerchant(merchantId, token, limit, offset) {
+    return fetch(API_BASE_URL + "/api/v1/merchants/"+ merchantId+"?limit="+limit+"&offset="+offset, {
         method: "GET",
         headers: {
             'Content-type': 'application/json',
-            'Authorization': 'Bearer ' + localStorage.getItem(ACCESS_TOKEN)
-        },
-    }).then(response => {
-        if (!response.ok) {
-            return Promise.reject(response);
-        } else {
-            return response.json();
-        }
-    }
-    );
-}
-
-export function getME() {
-    return fetch(API_BASE_URL + "/api/v1/auth/whoami", {
-        method: "GET",
-        headers: {
-            'Content-type': 'application/json',
-            'Authorization': 'Bearer ' + localStorage.getItem(ACCESS_TOKEN)
+            'Authorization': 'Bearer ' + token
         },
     }).then(response => {
         if (!response.ok) {
@@ -138,11 +107,4 @@ export function getME() {
 }
 
 
-export function getCurrentUser() {
 
-    if (!localStorage.getItem(ACCESS_TOKEN)) {
-        return Promise.reject("No access token set.");
-    }
-
-    return getME();
-}

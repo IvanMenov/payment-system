@@ -1,4 +1,4 @@
-import { fetchAPI, parseReadableStreamToJson } from '../../APIUtils';
+import { initTransaction, parseReadableStreamToJson } from '../../APIUtils';
 import { API_BASE_URL } from '../../constants';
 import { useState } from 'react';
 import Box from '@mui/material/Box';
@@ -13,8 +13,10 @@ import { Store } from 'react-notifications-component';
 
 const NewTransaction = (props) => {
 
-    const [user, setUser] = useState(props.currentUser)
     const [type, setType] = useState('CHARGE');
+    const [ keycloakInstance ] =useState(props.keycloakInstance);
+    const [currentUser ]= useState(props.currentUser);
+
     const [customer, setCustomer] = useState({
         customerEmail: '',
         customerPhone: '',
@@ -92,8 +94,8 @@ const NewTransaction = (props) => {
             }
 
             trackPromise(
-                fetchAPI("POST", API_BASE_URL + "/api/v1/payment/transactions/init", payment)
-                    .then(response => {
+                initTransaction( payment, keycloakInstance.token, currentUser.id)
+                    .then(() => {
                         setCustomer({
                             customerEmail: '',
                             customerPhone: '',
@@ -138,11 +140,14 @@ const NewTransaction = (props) => {
     }
 
     return (<div className="login-content">
-        <h1 className="login-title">Create Transaction</h1>
+        
+        <Box sx={{ 
+             display: 'flex',
+             justifyContent: 'center',
+             alignItems: 'center'
+         }}>
 
-        <Box sx={{ minWidth: 120 }}>
-
-            <FormControl id="form_id" fullWidth margin='normal' >
+            <FormControl id="form_id"  margin='normal' >
 
 
                 <InputLabel id="demo-simple-select-label">Transaction type</InputLabel>
@@ -190,7 +195,7 @@ const NewTransaction = (props) => {
                         <></>
                 }
 
-                <Button onClick={handleSubmit} type='submit' color="primary" size='lg' target='form_id'>Submit</Button>
+                <Button onClick={handleSubmit} type='submit' color="primary" size='lg' target='form_id'>SUBMIT</Button>
 
             </FormControl>
 
