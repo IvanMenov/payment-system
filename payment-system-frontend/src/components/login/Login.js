@@ -4,7 +4,7 @@ import { Link, Redirect } from 'react-router-dom'
 import { useState } from 'react';
 import { ACCESS_TOKEN, PRINCIPAL } from '../../constants';
 import Button from '@mui/material/Button';
-import { login } from '../../APIUtils';
+import { systemLogin } from '../../APIUtils';
 import FileUpload from '../FileUpload';
 import { trackPromise } from 'react-promise-tracker';
 import { Store } from 'react-notifications-component';
@@ -18,7 +18,7 @@ const Login = (props) => {
         event.preventDefault();
         if (input != null) {
             trackPromise(
-                login(input)
+                systemLogin(input)
                     .then(response => {
                         localStorage.setItem(ACCESS_TOKEN, response.token);
                         props.history.push("/profile");

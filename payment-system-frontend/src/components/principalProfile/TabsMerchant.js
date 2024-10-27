@@ -5,23 +5,23 @@ import Typography from '@mui/material/Typography';
 import NewTransaction from './NewTransaction';
 import { useState } from 'react';
 import { Button, Tabs } from '@mui/material';
-import { ACCESS_TOKEN } from '../../constants';
 import { Store } from 'react-notifications-component';
 import { useHistory } from "react-router-dom"
 import ListMerchantTransactions from './ListMerchantTransactions';
 
-
 const TabsMerchant = (props) => {
   const history = useHistory();
-  const [value, setValue] = React.useState(0);
+  const [value, setValue] =useState(0);
   const [user, setUser] = useState(props.currentUser)
+  const [ keycloakInstance ] =useState(props.keycloakInstance);
+
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
 
   const handleLogout = () => {
-    localStorage.removeItem(ACCESS_TOKEN);
     setUser({});
+    keycloakInstance.logout()
     Store.addNotification({
       message: "Successfully logged out!",
       type: "success",
@@ -34,8 +34,7 @@ const TabsMerchant = (props) => {
         onScreen: true
       }
     });
-    history.push('/login');
-    history.go();
+
   }
 
   function CustomTabPanel(props) {
@@ -61,7 +60,7 @@ const TabsMerchant = (props) => {
   }
   return (
     <Box sx={{ width: '100%' }}>
-      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', alignItems: 'center', justifyContent: 'center', display: 'flex'  }}>
         <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
           <Tab label="Create Transaction" />
           <Tab label="Get Transactions" />
@@ -72,10 +71,10 @@ const TabsMerchant = (props) => {
         </Tabs>
       </Box>
       <CustomTabPanel value={value} index={0}>
-        <NewTransaction  currentUser={user}></NewTransaction>
+        <NewTransaction keycloakInstance={keycloakInstance} currentUser={user}></NewTransaction>
       </CustomTabPanel>
       <CustomTabPanel value={value} index={1}>
-       <ListMerchantTransactions  currentUser={user}></ListMerchantTransactions>
+       <ListMerchantTransactions keycloakInstance={keycloakInstance} currentUser={user} comesFromAdmin={false}></ListMerchantTransactions>
       </CustomTabPanel>
     </Box>
   )
