@@ -1,6 +1,7 @@
 package com.emerchantpay.paymentsystembackend.controllers.v1;
 
 import com.emerchantpay.paymentsystembackend.model.Principal;
+import com.emerchantpay.paymentsystembackend.model.PrincipalStatus;
 import com.emerchantpay.paymentsystembackend.model.PrincipalType;
 import com.emerchantpay.paymentsystembackend.services.impl.PrincipalService;
 import com.emerchantpay.paymentsystembackend.utils.Constants;
@@ -43,14 +44,14 @@ public class PrincipalController {
             Principal.builder()
                 .email(jwtAuthenticationToken.getName())
                 .principalType(PrincipalType.ADMIN)
-                .principalStatus(Principal.Status.ACTIVE)
+                .principalStatus(PrincipalStatus.ACTIVE)
                 .build();
       } else if (set.contains("ROLE_" + Constants.PAYMENT_SYSTEM_MERCHANT_ROLE)) {
         principal =
             Principal.builder()
                 .email(jwtAuthenticationToken.getName())
                 .principalType(PrincipalType.MERCHANT)
-                .principalStatus(Principal.Status.INACTIVE)
+                .principalStatus(PrincipalStatus.INACTIVE)
                 .totalTransactionSum(BigDecimal.valueOf(0))
                 .build();
       }
@@ -93,7 +94,7 @@ public class PrincipalController {
   @PutMapping("/admin/merchants/{merchantId}/status/{status}")
   public ResponseEntity<?> changeMerchantStatus(
           @PathVariable String merchantId, @PathVariable String status) {
-    Principal.Status newStatus = Enum.valueOf(Principal.Status.class, status.toUpperCase());
+    PrincipalStatus newStatus = Enum.valueOf(PrincipalStatus.class, status.toUpperCase());
     Optional<Principal> merchantOptional =
             principalService.findPrincipalById(Long.parseLong(merchantId));
     if (merchantOptional.isEmpty()) {

@@ -4,12 +4,12 @@ import jakarta.validation.constraints.*;
 import jakarta.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "payment")
-public class PaymentDTO {
+public class Payment {
   private String uuid;
 
   private Double amount;
 
-  private CustomerDTO customer;
+  private Customer customer;
 
   @NotNull private TransactionType transactionType;
 
@@ -31,11 +31,11 @@ public class PaymentDTO {
     this.amount = amount;
   }
 
-  public CustomerDTO getCustomer() {
+  public Customer getCustomer() {
     return customer;
   }
 
-  public void setCustomer(CustomerDTO customer) {
+  public void setCustomer(Customer customer) {
     this.customer = customer;
   }
 

@@ -1,8 +1,7 @@
 package com.emerchantpay.paymentsystembackend.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import lombok.*;
@@ -32,32 +31,16 @@ public class Transaction {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "principal_id")
+  @JsonBackReference
   private Principal merchant;
 
   @Column(name = "transaction_status")
   @Enumerated(EnumType.STRING)
-  private Status transactionStatus;
+  private TransactionStatus transactionStatus;
 
   @Column(name = "transaction_type")
   @Enumerated(EnumType.STRING)
   private TransactionType transactionType;
 
   private Long timestamp;
-
-  public enum Status {
-    APPROVED("approved"),
-    REVERSED("reversed"),
-    REFUNDED("refunded"),
-    ERROR("error");
-
-    public final String trStatus;
-
-    Status(String status) {
-      this.trStatus = status;
-    }
-
-    public String getStatusType() {
-      return this.trStatus;
-    }
-  }
 }

@@ -2,6 +2,7 @@ package com.emerchantpay.paymentsystembackend.services.impl;
 
 import com.emerchantpay.paymentsystembackend.model.Principal;
 import com.emerchantpay.paymentsystembackend.model.Transaction;
+import com.emerchantpay.paymentsystembackend.model.TransactionStatus;
 import com.emerchantpay.paymentsystembackend.model.TransactionType;
 import com.emerchantpay.paymentsystembackend.repositories.PrincipalRepository;
 import com.emerchantpay.paymentsystembackend.repositories.TransactionRepository;
@@ -60,7 +61,7 @@ public class ScheduledCleanup implements IScheduledTask {
                                 transaction -> {
                                     uuidsToDelete.add(transaction.getUuid());
                                     if (transaction.getTransactionType() == TransactionType.CHARGE
-                                            && transaction.getTransactionStatus() == Transaction.Status.APPROVED) {
+                                            && transaction.getTransactionStatus() == TransactionStatus.APPROVED) {
                                         if (merchantToAmountToBeDecreaseFrom.get(transaction.getMerchant()) != null) {
                                             double newAmount =
                                                     merchantToAmountToBeDecreaseFrom.get(transaction.getMerchant())
@@ -92,6 +93,8 @@ public class ScheduledCleanup implements IScheduledTask {
                                     });
                         }
                     });
+        }else{
+            System.out.println("Scheduled cleanup is disabled!");
         }
 
     }
