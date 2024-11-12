@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 import jakarta.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "customer")
-public class CustomerDTO {
+public class Customer {
   @Email(message = "Email should be valid")
   private String customerEmail;
 

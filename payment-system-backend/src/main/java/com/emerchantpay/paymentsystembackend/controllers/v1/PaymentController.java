@@ -4,15 +4,14 @@ import com.emerchantpay.paymentsystembackend.exceptions.MerchantNotActivatedExce
 import com.emerchantpay.paymentsystembackend.exceptions.NoReferenceIdException;
 import com.emerchantpay.paymentsystembackend.exceptions.TranctionAlreadySubmittedException;
 import com.emerchantpay.paymentsystembackend.model.KafkaMessage;
-import com.emerchantpay.paymentsystembackend.model.PaymentDTO;
+import com.emerchantpay.paymentsystembackend.model.Payment;
 import com.emerchantpay.paymentsystembackend.model.Principal;
 import com.emerchantpay.paymentsystembackend.model.Transaction;
 import com.emerchantpay.paymentsystembackend.services.IMessageProducerService;
 import com.emerchantpay.paymentsystembackend.services.IPaymentService;
 import com.emerchantpay.paymentsystembackend.services.IPrincipalService;
-import com.emerchantpay.paymentsystembackend.validation.Payment;
+
 import java.net.URI;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -37,7 +36,7 @@ public class PaymentController {
       value = "/init/{merchantId}",
       consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
   public ResponseEntity<?> initializeTransaction(
-      @RequestBody @Payment PaymentDTO payment, @PathVariable("merchantId") String merchantId, Authentication authentication) {
+          @RequestBody @com.emerchantpay.paymentsystembackend.validation.Payment Payment payment, @PathVariable("merchantId") String merchantId, Authentication authentication) {
     Optional<Principal> optionalPrincipal = principalService.findPrincipalById(Long.parseLong(merchantId));
     if(optionalPrincipal.isEmpty()){
       throw new RuntimeException("No merchant with id: "+ merchantId);

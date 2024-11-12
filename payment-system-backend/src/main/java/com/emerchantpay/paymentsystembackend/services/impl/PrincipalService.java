@@ -65,13 +65,13 @@ public class PrincipalService implements IPrincipalService<Principal> {
     public boolean isMerchantInactive(Principal merchant) {
         Optional<Principal> optionalPrincipal =
                 principalRepository.findByIdAndPrincipalType(
-                        merchant.getId(), PrincipalType.MERCHANT.toString());
+                        merchant.getId(), PrincipalType.MERCHANT);
         if (optionalPrincipal.isPresent()) {
             return optionalPrincipal
                     .get()
                     .getPrincipalStatus()
                     .getStatusValue()
-                    .equals(Principal.Status.INACTIVE.getStatusValue());
+                    .equals(PrincipalStatus.INACTIVE.getStatusValue());
         }
         return false;
     }
@@ -115,7 +115,7 @@ public class PrincipalService implements IPrincipalService<Principal> {
                 transactionBuilder.transactionType(TransactionType.valueOf(tuple.get("transaction_type", String.class)));
             }
             if (tuple.get("transaction_status", String.class) != null) {
-                transactionBuilder.transactionStatus(Transaction.Status.valueOf(tuple.get("transaction_status", String.class)));
+                transactionBuilder.transactionStatus(TransactionStatus.valueOf(tuple.get("transaction_status", String.class)));
 
             }
             principal.addTransaction(transactionBuilder.build());

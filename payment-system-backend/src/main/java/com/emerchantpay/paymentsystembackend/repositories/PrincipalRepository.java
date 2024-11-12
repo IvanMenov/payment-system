@@ -12,7 +12,9 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface PrincipalRepository extends JpaRepository<Principal, Long> {
-  @EntityGraph(value = "Principal.transactionList")
+  @Query("SELECT new com.emerchantpay.paymentsystembackend.model.Principal(p.id, p.name, p.description, p.email, " +
+          "p.principalType, p.principalStatus, p.totalTransactionSum, p.version) " +
+          "FROM Principal p WHERE p.email = ?1")
   Optional<Principal> findByEmail(String email);
 
   @Query(value = "select p.id, p.email, p.total_transaction_sum," +
@@ -29,15 +31,20 @@ public interface PrincipalRepository extends JpaRepository<Principal, Long> {
   List<Tuple> findPrincipalByIdWithBatchOfTransactions(@Param("id") long id, @Param("offset") int offset, @Param("limit") int limit);
 
   // don't load transactionList
+  @Query("SELECT new com.emerchantpay.paymentsystembackend.model.Principal(p.id, p.name, p.description, p.email, " +
+          "p.principalType, p.principalStatus, p.totalTransactionSum, p.version) " +
+          "FROM Principal p WHERE p.id = ?1")
   Optional<Principal> findPrincipalById(long id);
 
-  @EntityGraph(value = "Principal.transactionList")
+  @Query("SELECT new com.emerchantpay.paymentsystembackend.model.Principal(p.id, p.name, p.description, p.email, " +
+          "p.principalType, p.principalStatus, p.totalTransactionSum, p.version) " +
+          "FROM Principal p WHERE p.principalType = ?1")
   List<Principal> findAllByPrincipalType(PrincipalType principalType);
 
   @Query(
       value =
-          "select p.id, p.name, p.description,p.email,p.principal_type, p.principal_status, p.total_transaction_sum, p.version"
-              + " from principal p where p.id = ?1 and p.principal_type = ?2 ",
-      nativeQuery = true)
-  Optional<Principal> findByIdAndPrincipalType(long id, String type);
+          "SELECT new com.emerchantpay.paymentsystembackend.model.Principal(p.id, p.name, p.description, p.email, "
+              + " p.principalType, p.principalStatus, p.totalTransactionSum,p.version) " +
+                  "from Principal p WHERE p.id = ?1 AND p.principalType = ?2 ")
+  Optional<Principal> findByIdAndPrincipalType(long id, PrincipalType type);
 }

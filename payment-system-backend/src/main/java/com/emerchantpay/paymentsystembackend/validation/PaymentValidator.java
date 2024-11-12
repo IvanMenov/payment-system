@@ -1,16 +1,16 @@
 package com.emerchantpay.paymentsystembackend.validation;
 
-import com.emerchantpay.paymentsystembackend.model.CustomerDTO;
-import com.emerchantpay.paymentsystembackend.model.PaymentDTO;
+import com.emerchantpay.paymentsystembackend.model.Customer;
+import com.emerchantpay.paymentsystembackend.model.Payment;
 import com.emerchantpay.paymentsystembackend.model.TransactionType;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
-public class PaymentValidator implements ConstraintValidator<Payment, PaymentDTO> {
+public class PaymentValidator implements ConstraintValidator<com.emerchantpay.paymentsystembackend.validation.Payment, Payment> {
 
   @Override
   public boolean isValid(
-      PaymentDTO paymentDTO, ConstraintValidatorContext constraintValidatorContext) {
+          Payment paymentDTO, ConstraintValidatorContext constraintValidatorContext) {
     if (paymentDTO.getTransactionType() == TransactionType.CHARGE) {
       return checkAmount(paymentDTO.getAmount())
           && checkCustomerAmount(paymentDTO.getCustomer(), paymentDTO.getAmount())
@@ -30,17 +30,17 @@ public class PaymentValidator implements ConstraintValidator<Payment, PaymentDTO
     return uuid != null;
   }
 
-  private boolean checkCustomerPhone(CustomerDTO customerDTO) {
-    return customerDTO.getCustomerPhone() != null
-        && PhoneValidation.patternMatches(customerDTO.getCustomerPhone());
+  private boolean checkCustomerPhone(Customer customer) {
+    return customer.getCustomerPhone() != null
+        && PhoneValidation.patternMatches(customer.getCustomerPhone());
   }
 
-  private boolean checkCustomerEmail(CustomerDTO customerDTO) {
-    return customerDTO.getCustomerEmail() != null
-        && EmailValidation.patternMatches(customerDTO.getCustomerEmail());
+  private boolean checkCustomerEmail(Customer customer) {
+    return customer.getCustomerEmail() != null
+        && EmailValidation.patternMatches(customer.getCustomerEmail());
   }
 
-  private boolean checkCustomerAmount(CustomerDTO customer, Double amount) {
+  private boolean checkCustomerAmount(Customer customer, Double amount) {
     return customer != null && customer.getCustomerAmount() != null;
   }
 

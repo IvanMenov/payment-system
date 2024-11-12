@@ -1,13 +1,10 @@
 package com.emerchantpay.paymentsystembackend.services.impl;
 
+import com.emerchantpay.paymentsystembackend.model.*;
 import com.emerchantpay.paymentsystembackend.repositories.PrincipalRepository;
 import com.emerchantpay.paymentsystembackend.repositories.TransactionRepository;
 import com.emerchantpay.paymentsystembackend.services.IPaymentService;
 import com.emerchantpay.paymentsystembackend.utils.TransactionFactory;
-import com.emerchantpay.paymentsystembackend.model.PaymentDTO;
-import com.emerchantpay.paymentsystembackend.model.Principal;
-import com.emerchantpay.paymentsystembackend.model.Transaction;
-import com.emerchantpay.paymentsystembackend.model.TransactionType;
 import jakarta.annotation.PostConstruct;
 import jakarta.persistence.OptimisticLockException;
 import java.util.List;
@@ -15,6 +12,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -44,7 +42,7 @@ public class PaymentService implements IPaymentService {
    * @return
    */
   @Override
-  public boolean isTransactionAlreadySubmitted(PaymentDTO payment) {
+  public boolean isTransactionAlreadySubmitted(Payment payment) {
     if (payment.getUuid() == null) {
       return false;
     }
@@ -54,7 +52,7 @@ public class PaymentService implements IPaymentService {
   /**
    * @param merchant
    * @param payment
-   *     <p>creates an initial Transaction based on PaymentDTO provided valid options for payment
+   *     <p>creates an initial Transaction based on Payment provided valid options for payment
    *     transactions types are:
    *     <p>TransactionType.REFUND , TransactionType.CHARGE, TransactionType.REVERSAL
    *     <p>Valid options are: CHARGE, REFUND, REVERSAL
@@ -62,7 +60,7 @@ public class PaymentService implements IPaymentService {
    * @throws IllegalArgumentException when AUTHORIZE is provided the method for transactionType
    */
   @Override
-  public Transaction initializeTransaction(Principal merchant, PaymentDTO payment) {
+  public Transaction initializeTransaction(Principal merchant, Payment payment) {
     return transactionTemplate.execute(
         status -> {
           Transaction initializedTransaction =
@@ -117,7 +115,7 @@ public class PaymentService implements IPaymentService {
   @Override
   @Async
   public void commenceTransactionProcess(
-      Principal merchant, PaymentDTO payment, Transaction initialTransaction) {
+          Principal merchant, Payment payment, Transaction initialTransaction) {
     if (payment.getTransactionType() == TransactionType.REVERSAL) {
       performReversal(initialTransaction);
     } else if (payment.getTransactionType() == TransactionType.REFUND) {
@@ -128,12 +126,12 @@ public class PaymentService implements IPaymentService {
   }
 
   private boolean isAuthorizationSuccessful(
-      Principal merchant, PaymentDTO payment, Transaction initialTransaction) {
+          Principal merchant, Payment payment, Transaction initialTransaction) {
     boolean isAuthorizationSuccessful = false;
     if (payment.getAmount() > payment.getCustomer().getCustomerAmount()) {
-      initialTransaction.setTransactionStatus(Transaction.Status.ERROR);
+      initialTransaction.setTransactionStatus(TransactionStatus.ERROR);
     } else {
-      initialTransaction.setTransactionStatus(Transaction.Status.APPROVED);
+      initialTransaction.setTransactionStatus(TransactionStatus.APPROVED);
       isAuthorizationSuccessful = true;
     }
     transactionRepository.save(initialTransaction);
@@ -149,16 +147,16 @@ public class PaymentService implements IPaymentService {
               transactionRepository.findById(initialTransaction.getReferenceTransactionUUID());
           if (authorizationTransaction.isPresent()
               && (authorizationTransaction.get().getTransactionType() == TransactionType.AUTHORIZE)
-              && (authorizationTransaction.get().getTransactionStatus() == Transaction.Status.APPROVED)
+              && (authorizationTransaction.get().getTransactionStatus() == TransactionStatus.APPROVED)
               && waitForReversalTransaction(authorizationTransaction.get()) < WAIT_TIME) {
             authTransaction = authorizationTransaction.get();
 
-            authTransaction.setTransactionStatus(Transaction.Status.REVERSED);
-            initialTransaction.setTransactionStatus(Transaction.Status.APPROVED);
+            authTransaction.setTransactionStatus(TransactionStatus.REVERSED);
+            initialTransaction.setTransactionStatus(TransactionStatus.APPROVED);
             authTransaction.setReferenceTransactionUUID(initialTransaction.getUuid());
 
           } else {
-            initialTransaction.setTransactionStatus(Transaction.Status.ERROR);
+            initialTransaction.setTransactionStatus(TransactionStatus.ERROR);
           }
           if (authTransaction != null) {
             // small optimization
@@ -170,7 +168,7 @@ public class PaymentService implements IPaymentService {
   }
 
   private void preformCharging(
-      Principal merchant, PaymentDTO payment, Transaction initialTransaction) {
+          Principal merchant, Payment payment, Transaction initialTransaction) {
     if (isAuthorizationSuccessful(merchant, payment, initialTransaction)) {
       transactionTemplate.executeWithoutResult(
           (transactionStatus) -> {
@@ -191,8 +189,8 @@ public class PaymentService implements IPaymentService {
             // status
             // of authorization transaction from Approved to Reversed
             if (transactionRepository.findById(initialTransaction.getUuid()).get().getTransactionStatus()
-                == Transaction.Status.APPROVED) {
-              chargeTransaction.setTransactionStatus(Transaction.Status.APPROVED);
+                == TransactionStatus.APPROVED) {
+              chargeTransaction.setTransactionStatus(TransactionStatus.APPROVED);
               // set reference of the authorization transaction to charge transaction
               initialTransaction.setReferenceTransactionUUID(chargeTransaction.getUuid());
               transactionRepository.save(initialTransaction);
@@ -211,13 +209,13 @@ public class PaymentService implements IPaymentService {
                   principal.updateTotalTransactionSum(payment.getAmount(), true);
                   principalRepository.save(principal);
                   isUpdated = true;
-                } catch (OptimisticLockException exception) {
+                } catch (OptimisticLockException | OptimisticLockingFailureException exception ) {
                   principal = principalRepository.findPrincipalById(merchant.getId()).get();
                 }
               }
 
             } else {
-              chargeTransaction.setTransactionStatus(Transaction.Status.ERROR);
+              chargeTransaction.setTransactionStatus(TransactionStatus.ERROR);
             }
             chargeTransaction.setTimestamp(System.currentTimeMillis());
             transactionRepository.save(chargeTransaction);
@@ -226,7 +224,7 @@ public class PaymentService implements IPaymentService {
   }
 
   private void performRefunding(
-      Principal merchant, PaymentDTO payment, Transaction initialTransaction) {
+          Principal merchant, Payment payment, Transaction initialTransaction) {
     transactionTemplate.executeWithoutResult(
         (transactionStatus) -> {
           // find charge transaction
@@ -236,10 +234,10 @@ public class PaymentService implements IPaymentService {
           if (chargeTransactionOptional.isPresent()
               && (payment.getAmount() <= chargeTransactionOptional.get().getAmount())
               && (chargeTransactionOptional.get().getTransactionType() == TransactionType.CHARGE)
-              && (chargeTransactionOptional.get().getTransactionStatus() == Transaction.Status.APPROVED)) {
+              && (chargeTransactionOptional.get().getTransactionStatus() == TransactionStatus.APPROVED)) {
             chargeTransaction = chargeTransactionOptional.get();
-            initialTransaction.setTransactionStatus(Transaction.Status.APPROVED);
-            chargeTransaction.setTransactionStatus(Transaction.Status.REFUNDED);
+            initialTransaction.setTransactionStatus(TransactionStatus.APPROVED);
+            chargeTransaction.setTransactionStatus(TransactionStatus.REFUNDED);
             transactionRepository.save(chargeTransaction);
 
             boolean isUpdated = false;
@@ -249,12 +247,12 @@ public class PaymentService implements IPaymentService {
                 principal.updateTotalTransactionSum(payment.getAmount(), false);
                 principalRepository.save(principal);
                 isUpdated = true;
-              } catch (OptimisticLockException exception) {
+              } catch (OptimisticLockException | OptimisticLockingFailureException exception) {
                 principal = principalRepository.findPrincipalById(merchant.getId()).get();
               }
             }
           } else {
-            initialTransaction.setTransactionStatus(Transaction.Status.ERROR);
+            initialTransaction.setTransactionStatus(TransactionStatus.ERROR);
           }
 
           transactionRepository.save(initialTransaction);
@@ -281,7 +279,7 @@ public class PaymentService implements IPaymentService {
    * @return
    */
   @Override
-  public boolean hasNoReferenceId(PaymentDTO payment) {
+  public boolean hasNoReferenceId(Payment payment) {
     if (payment.getTransactionType() == TransactionType.REFUND
         || payment.getTransactionType() == TransactionType.REVERSAL) {
       return payment.getReferenceId() == null;

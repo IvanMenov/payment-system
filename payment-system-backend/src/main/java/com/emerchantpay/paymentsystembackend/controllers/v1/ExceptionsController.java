@@ -4,6 +4,8 @@ import com.emerchantpay.paymentsystembackend.exceptions.MerchantNotActivatedExce
 import com.emerchantpay.paymentsystembackend.exceptions.NoReferenceIdException;
 import com.emerchantpay.paymentsystembackend.exceptions.TranctionAlreadySubmittedException;
 import java.io.IOException;
+import java.util.Arrays;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -45,6 +47,9 @@ public class ExceptionsController {
         Exception.class
       })
   public ResponseEntity<?> handleInputValidationException(Exception exception) {
+    System.out.println(exception.getMessage());
+    Arrays.stream(exception.getStackTrace()).forEach(System.out::println);
+    System.out.println(exception.getCause());
     return ResponseEntity.internalServerError().body(exception.getMessage());
   }
 }

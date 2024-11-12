@@ -1,6 +1,6 @@
 package com.emerchantpay.paymentsystembackend.utils;
 
-import com.emerchantpay.paymentsystembackend.model.PaymentDTO;
+import com.emerchantpay.paymentsystembackend.model.Payment;
 import com.emerchantpay.paymentsystembackend.model.Principal;
 import com.emerchantpay.paymentsystembackend.model.Transaction;
 import com.emerchantpay.paymentsystembackend.model.TransactionType;
@@ -8,16 +8,16 @@ import java.util.UUID;
 
 public class TransactionFactory {
   public static Transaction createTransaction(
-      Principal merchant, PaymentDTO payment, Transaction authorizeTransaction) {
+          Principal merchant, Payment payment, Transaction authorizeTransaction) {
     Transaction createdTransaction = null;
     Transaction.TransactionBuilder transactionBuilder =
         Transaction.builder()
-            .uuid(payment.getUuid() == null ? UUID.randomUUID().toString() : payment.getUuid())
             .merchant(merchant)
             .timestamp(System.currentTimeMillis());
     if (payment.getTransactionType() == TransactionType.REVERSAL) {
       createdTransaction =
           transactionBuilder
+              .uuid(payment.getUuid() == null ? UUID.randomUUID().toString() : payment.getUuid())
               .transactionType(TransactionType.REVERSAL)
               // should reference authorization transaction
               .referenceTransactionUUID(payment.getReferenceId())
@@ -27,6 +27,7 @@ public class TransactionFactory {
         // there should already be an authorizationion transaction
         createdTransaction =
             transactionBuilder
+                .uuid(UUID.randomUUID().toString())
                 .amount(payment.getAmount())
                 .transactionType(TransactionType.CHARGE)
                 .customerEmail(authorizeTransaction.getCustomerEmail())
@@ -37,6 +38,7 @@ public class TransactionFactory {
         // first create authorization transaction
         createdTransaction =
             transactionBuilder
+                .uuid(payment.getUuid() == null ? UUID.randomUUID().toString() : payment.getUuid())
                 .amount(payment.getAmount())
                 .transactionType(TransactionType.AUTHORIZE)
                 .customerEmail(payment.getCustomer().getCustomerEmail())
@@ -46,6 +48,7 @@ public class TransactionFactory {
     } else if (payment.getTransactionType() == TransactionType.REFUND) {
       createdTransaction =
           transactionBuilder
+              .uuid(payment.getUuid() == null ? UUID.randomUUID().toString() : payment.getUuid())
               .amount(payment.getAmount())
               .transactionType(TransactionType.REFUND)
               // should reference charge transaction
